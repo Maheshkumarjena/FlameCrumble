@@ -2,8 +2,9 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 import { Toaster } from "@/components/UI/sonner";
-import SessionProvider from './provider'
+import SessionProvider from "./provider";
 import GoogleAuthInitializer from "@/components/GoogleAuthInitializer";
+import Script from "next/script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,13 +26,18 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased overflow-x-hidden`}
-        >
-        <Providers> {/* Wrap your application with Redux Provider */}
+      >
+        <Providers>
+          {" "}
+          {/* Wrap your application with Redux Provider */}
           <SessionProvider>
-          <GoogleAuthInitializer/>
-          {children}
-                  <Toaster />
-
+            <GoogleAuthInitializer />
+            <Script
+              src="https://checkout.razorpay.com/v1/checkout.js"
+              strategy="lazyonload"
+            />
+            {children}
+            <Toaster />
           </SessionProvider>
         </Providers>
       </body>

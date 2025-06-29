@@ -1,349 +1,572 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Head from 'next/head';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useSelector } from 'react-redux';
-import { selectAuthUser, selectIsAuthenticated, selectAuthLoading } from '@/lib/features/auth/selector';
-import axios from 'axios';
+import Navbar from '@/components/Layout/Navbar';
+import Footer from '@/components/Layout/Footer';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchCart } from '@/lib/features/auth/cartSlice';
+import {
+  selectIsAuthenticated,
+  selectAuthLoading,
+  checkAuthStatus,
+} from '@/lib/features/auth/authSlice';
+import axios from 'axios'; // For making API requests
 
-// Re-using common UI components (assuming you have these or similar)
-// For now, I'll define a basic MessageBox here. In a real app, you'd import it.
-const MessageBox = ({ type, message, onClose }) => {
-  if (!message) return null;
-  const baseClasses = "p-4 mb-4 rounded-md flex items-center shadow-sm";
-  let typeClasses = "";
-  switch (type) {
-    case 'success': typeClasses = "bg-green-100 border-l-4 border-green-500 text-green-700"; break;
-    case 'error': typeClasses = "bg-red-100 border-l-4 border-red-500 text-red-700"; break;
-    default: typeClasses = "bg-blue-100 border-l-4 border-blue-500 text-blue-700"; break;
-  }
-  return (
-    <div className={`${baseClasses} ${typeClasses}`} role="alert">
-      {/* Assuming you have these FiX, FiCheckCircle, FiAlertCircle icons available or similar SVGs */}
-      {/* <FiCheckCircle className="mr-3 text-lg" /> */}
-      <div className="flex-grow">
-        <p className="font-medium">{message}</p>
-      </div>
-      {onClose && (
-        <button onClick={onClose} className="ml-4 text-current hover:opacity-75">
-          {/* <FiX size={18} /> */}
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-        </button>
-      )}
-    </div>
-  );
-};
+// Import refactored components
+import ShippingAddressForm from '@/components/Checkout/ShippingAddressForm';
+import PaymentMethodSelection from '@/components/Checkout/PaymentMethodSelection';
+import OrderSummaryAndItems from '@/components/Checkout/OrderSummaryAndItems';
+import CheckoutMessages from '@/components/Checkout/CheckoutMessages';
 
-
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
-
-export default function CheckoutPage() {
+export default function Checkout() {
   const router = useRouter();
-  const authUser = useSelector(selectAuthUser);
+  const dispatch = useDispatch();
+  const BACKEND_URL =
+    process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+
+  console.log('Checkout component rendered.');
+
+  // Get state from Redux store for authentication
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const authLoading = useSelector(selectAuthLoading);
+  console.log('Redux Auth State:', { isAuthenticated, authLoading });
 
-  const [shippingAddress, setShippingAddress] = useState({
+  // Get state from Redux store for cart
+  const cart = useSelector((state) => state.cart.items);
+  const loadingCart = useSelector((state) => state.cart.loading);
+  const cartErrorObject = useSelector((state) => state.cart.error);
+  const cartErrorMessage = cartErrorObject?.message;
+  console.log('Redux Cart State:', { cart, loadingCart, cartErrorMessage });
+
+  // Local state for UI management
+  const [authCheckInitiated, setAuthCheckInitiated] = useState(false); // New state to track if auth check started
+  const [isProcessingOrder, setIsProcessingOrder] = useState(false);
+  const [localCheckoutSuccessMessage, setLocalCheckoutSuccessMessage] =
+    useState('');
+  const [localCheckoutErrorMessage, setLocalCheckoutErrorMessage] =
+    useState('');
+  const [razorpayReady, setRazorpayReady] = useState(false);
+  const [savedAddresses, setSavedAddresses] = useState([]);
+  const [isFetchingAddresses, setIsFetchingAddresses] = useState(false);
+
+  // Form state for shipping information
+  const [shippingInfo, setShippingInfo] = useState({
     fullName: '',
-    phone: '',
-    line1: '',
-    line2: '',
+    address: '',
     city: '',
     state: '',
     zip: '',
-    country: 'India', // Default or fetch from user profile
+    phone: '',
+    paymentMethod: 'creditCard', // This will be sent as 'Razorpay' to backend
+    orderNotes: '',
   });
+  console.log('Current Shipping Info:', shippingInfo);
 
-  const [paymentMethod, setPaymentMethod] = useState('Razorpay'); // Default to Razorpay
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
-  const [formErrors, setFormErrors] = useState({});
-
-  // Placeholder for cart items and totals. In a real app, these would come from your cart state.
-  // Example: useSelector(selectCartItems) and useSelector(selectCartTotal)
-  const [cartItems, setCartItems] = useState([
-    { product: '60d0fe4f53112361681729c1', name: 'Vanilla Dream Candle', image: '/images/candle.jpg', quantity: 1, price: 29.99 },
-    { product: '60d0fe4f53112361681729c2', name: 'Artisan Soap Bar', image: '/images/soap.jpg', quantity: 2, price: 10.00 },
-  ]);
-  const subtotal = cartItems.reduce((acc, item) => acc + item.quantity * item.price, 0);
-  const shippingPrice = 5.00; // Example fixed shipping
-  const taxRate = 0.05; // 5% tax example
-  const taxPrice = subtotal * taxRate;
-  const totalAmount = subtotal + shippingPrice + taxPrice;
-
-  // Protect the route
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.push(`/auth/login?returnUrl=${encodeURIComponent('/checkout')}`);
-    }
-    // Pre-fill shipping address if user has existing addresses (fetch from backend later)
-    // For now, if authUser has a phone, use it. You'd fetch full addresses here.
-    if (authUser) {
-      setShippingAddress(prev => ({
-        ...prev,
-        // You would typically fetch and populate the user's default address here
-        phone: authUser.phone || '',
-      }));
-    }
-  }, [authLoading, isAuthenticated, router, authUser]);
-
-  const validateForm = () => {
-    const errors = {};
-    if (!shippingAddress.fullName) errors.fullName = 'Full Name is required.';
-    if (!shippingAddress.phone) errors.phone = 'Phone Number is required.';
-    if (!/^\d{10}$/.test(shippingAddress.phone)) errors.phone = 'Invalid phone number (10 digits required).';
-    if (!shippingAddress.line1) errors.line1 = 'Address Line 1 is required.';
-    if (!shippingAddress.city) errors.city = 'City is required.';
-    if (!shippingAddress.state) errors.state = 'State is required.';
-    if (!shippingAddress.zip) errors.zip = 'Zip Code is required.';
-    if (!/^\d{6}$/.test(shippingAddress.zip)) errors.zip = 'Invalid zip code (6 digits required).';
-    if (!shippingAddress.country) errors.country = 'Country is required.';
-    
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const handleShippingChange = (e) => {
+  // Handle form input changes
+  const handleInputChange = useCallback((e) => {
     const { name, value } = e.target;
-    setShippingAddress(prev => ({ ...prev, [name]: value }));
-  };
+    console.log(`Input change: ${name} = ${value}`);
+    setShippingInfo((prevInfo) => ({
+      ...prevInfo,
+      [name]: value,
+    }));
+  }, []);
 
-  const handlePlaceOrder = async () => {
-    setError(null);
-    setSuccess(null);
-    if (!validateForm()) {
-      return;
-    }
+  // Handle selecting a saved address
+  const handleSelectAddress = useCallback((selectedAddress) => {
+    console.log('Selected saved address:', selectedAddress);
+    setShippingInfo((prevInfo) => ({
+      ...prevInfo,
+      fullName: selectedAddress.fullName,
+      address: selectedAddress.address,
+      city: selectedAddress.city,
+      state: selectedAddress.state,
+      zip: selectedAddress.zip,
+      phone: selectedAddress.phone,
+    }));
+  }, []);
 
-    if (cartItems.length === 0) {
-      setError('Your cart is empty. Please add items before checking out.');
-      return;
-    }
-
-    setLoading(true);
+  // Function to fetch user addresses
+  const fetchUserAddresses = async () => {
+    setIsFetchingAddresses(true);
+    setLocalCheckoutErrorMessage(''); // Clear previous errors
+    console.log('Attempting to fetch user addresses...');
     try {
-      const orderData = {
-        orderItems: cartItems.map(item => ({
-          product: item.product,
-          name: item.name,
-          image: item.image,
-          quantity: item.quantity,
-          price: item.price,
-        })),
-        shippingAddress,
-        paymentMethod,
-        shippingPrice,
-        taxPrice,
-        totalAmount,
-      };
-
-      const response = await axios.post(`${BACKEND_URL}/api/orders`, orderData, {
+      const response = await axios.get(`${BACKEND_URL}/api/addresses`, {
         withCredentials: true,
       });
-
-      setSuccess('Order created successfully! Redirecting to payment...');
-      // Clear cart after successful order creation (if using Redux for cart)
-      // dispatch(clearCart()); 
-      router.push(`/payment/${response.data._id}`); // Redirect to payment page with order ID
-
-    } catch (err) {
-      console.error('Error placing order:', err);
-      setError(err.response?.data?.error || 'Failed to place order.');
+      const data = response.data;
+      console.log('Fetched addresses response:', data);
+      setSavedAddresses(data.addresses || []);
+      if (data.addresses && data.addresses.length > 0) {
+        console.log('Pre-filling with first saved address.');
+        handleSelectAddress(data.addresses[0]);
+      }
+    } catch (error) {
+      console.error('Error fetching addresses:', error);
+      if (axios.isAxiosError(error) && error.response) {
+        setLocalCheckoutErrorMessage(
+          error.response.data.error || 'Failed to fetch saved addresses.'
+        );
+      } else {
+        setLocalCheckoutErrorMessage(
+          'Error fetching addresses. Please try again.'
+        );
+      }
     } finally {
-      setLoading(false);
+      setIsFetchingAddresses(false);
+      console.log('Finished fetching user addresses.');
     }
   };
 
-  if (authLoading || !isAuthenticated) {
+  // --- Authentication and Data Fetching Logic (Refined) ---
+  useEffect(() => {
+    // Only dispatch checkAuthStatus once on component mount
+    console.log('useEffect: Dispatching checkAuthStatus for initial auth check.');
+    dispatch(checkAuthStatus());
+    setAuthCheckInitiated(true); // Mark that auth check has started
+  }, [dispatch]);
+
+  useEffect(() => {
+    console.log(
+      'useEffect: Auth status listener. isAuthenticated:',
+      isAuthenticated,
+      'authLoading:',
+      authLoading,
+      'authCheckInitiated:',
+      authCheckInitiated
+    );
+
+    // Only proceed if auth check has been initiated and is no longer loading
+    if (authCheckInitiated && !authLoading) {
+      if (!isAuthenticated) {
+        console.log('User not authenticated, redirecting to login.');
+        // If not authenticated, redirect to login page with return URL
+        router.push(`/auth/login?returnUrl=${encodeURIComponent('/checkout')}`);
+      } else {
+        console.log('User authenticated, fetching cart and addresses.');
+        // If authenticated, fetch necessary user-specific data
+        dispatch(fetchCart());
+        fetchUserAddresses();
+      }
+    }
+  }, [isAuthenticated, authLoading, authCheckInitiated, dispatch, router]);
+
+
+  // Load Razorpay Checkout SDK dynamically within useEffect
+  useEffect(() => {
+    const loadRazorpayScript = () => {
+      console.log('Loading Razorpay script...');
+      const script = document.createElement('script');
+      script.id = 'razorpay-checkout-script';
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.async = true; // Make it async
+      script.onload = () => {
+        console.log('Razorpay script loaded successfully.');
+        setRazorpayReady(true);
+      };
+      script.onerror = () => {
+        console.error('Failed to load Razorpay script.');
+        setLocalCheckoutErrorMessage(
+          'Failed to load Razorpay script. Please check your internet connection.'
+        );
+      };
+      document.body.appendChild(script);
+    };
+
+    if (typeof window !== 'undefined' && !window.Razorpay) {
+      loadRazorpayScript();
+    } else if (typeof window !== 'undefined' && window.Razorpay) {
+      console.log('Razorpay script already present.');
+      setRazorpayReady(true);
+    }
+
+    // Cleanup function to remove the script if the component unmounts
+    return () => {
+      console.log('Cleaning up Razorpay script.');
+      const script = document.getElementById('razorpay-checkout-script');
+      if (script) {
+        script.remove();
+      }
+    };
+  }, []); // Empty dependency array means this effect runs once on mount and cleans up on unmount
+
+  // Calculate cart totals
+  const subtotal = cart.reduce(
+    (sum, item) => sum + (item.product?.price || 0) * (item.quantity || 0),
+    0
+  );
+  // Assuming deliveryCharge is 50 INR based on your backend
+  const deliveryCharge = 50;
+  const total = subtotal > 0 ? subtotal + deliveryCharge : 0;
+  console.log('Cart Totals:', { subtotal, deliveryCharge, total });
+
+  /**
+   * Initiates the Razorpay payment process by opening the checkout modal.
+   * @param {object} razorpayOrder - Contains Razorpay order details from the backend.
+   * @param {string} razorpayOrder.orderId - Razorpay's generated order ID.
+   * @param {number} razorpayOrder.amount - Amount in smallest currency unit (e.g., paise).
+   * @param {string} razorpayOrder.currency - Currency code (e.g., "INR").
+   * @param {string} razorpayOrder.dbOrderId - Your internal database order ID.
+   */
+  const handleRazorpayPayment = async (razorpayOrder) => {
+    console.log('Attempting to open Razorpay payment modal with:', razorpayOrder);
+    if (!razorpayReady) {
+      setLocalCheckoutErrorMessage(
+        'Razorpay script not loaded. Please try again or refresh the page.'
+      );
+      console.log('Razorpay script not ready, cannot open modal.');
+      setIsProcessingOrder(false);
+      return;
+    }
+
+    const options = {
+      key: 'rzp_test_EP96mVjBj0C4va', // Your Public Razorpay Key ID - Ensure this is correct!
+      amount: razorpayOrder.amount, // Amount in paise/cents
+      currency: razorpayOrder.currency,
+      name: 'flame&crumble', // Your company name
+      description: 'Order Payment',
+      order_id: razorpayOrder.orderId, // Razorpay's order ID obtained from backend
+      handler: async function (response) {
+        console.log('Razorpay payment successful, response:', response);
+        // This function is called by Razorpay on successful payment
+        setLocalCheckoutSuccessMessage(
+          'Payment successful! Verifying your order...'
+        );
+        setIsProcessingOrder(true); // Keep processing state while verifying payment
+
+        try {
+          // **Step 3: Verify payment on your backend using axios**
+          console.log('Verifying payment on backend...');
+          const verifyResponse = await axios.post(
+            `${BACKEND_URL}/api/payments/verify`, // Use backend URL for verification
+            {
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_signature: response.razorpay_signature,
+              dbOrderId: razorpayOrder.dbOrderId, // Pass your internal order ID
+            },
+            {
+              withCredentials: true, // Important for sending cookies/sessions
+            }
+          );
+
+          const verificationData = verifyResponse.data; // Axios automatically parses JSON
+          console.log('Payment verification successful, data:', verificationData);
+
+          setLocalCheckoutSuccessMessage(
+            'Order placed and payment verified successfully!'
+          );
+          // Redirect only after successful verification
+          setTimeout(() => {
+            console.log('Redirecting to order confirmation page.');
+            router.push(
+              `/order-confirmation?orderId=${razorpayOrder.dbOrderId}`
+            );
+          }, 1500);
+        } catch (error) {
+          console.error('Payment verification error:', error);
+          // Axios error handling for verification
+          if (axios.isAxiosError(error) && error.response) {
+            setLocalCheckoutErrorMessage(
+              error.response.data.error || 'Payment verification failed.'
+            );
+          } else {
+            setLocalCheckoutErrorMessage(
+              error.message ||
+                'Payment verification failed. Please contact support.'
+            );
+          }
+          setIsProcessingOrder(false); // Stop processing indication
+        }
+      },
+      prefill: {
+        name: shippingInfo.fullName,
+        email: 'customer@example.com', // Replace with actual user email if available
+        contact: shippingInfo.phone,
+      },
+      notes: {
+        dbOrderId: razorpayOrder.dbOrderId, // Pass your internal DB order ID to Razorpay
+      },
+      theme: {
+        color: '#E30B5D',
+      },
+      modal: {
+        ondismiss: function () {
+          console.log('Razorpay payment modal dismissed by user.');
+          setLocalCheckoutErrorMessage(
+            'Payment was interrupted or canceled. Please try again.'
+          );
+          setIsProcessingOrder(false);
+        },
+      },
+    };
+
+    const rzp = new window.Razorpay(options);
+    rzp.open();
+  };
+
+  /**
+   * Handles the form submission for placing an order.
+   * This function first creates an order on the backend and then handles payment initiation.
+   * @param {Event} e - The form submission event.
+   */
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    console.log('Form submission initiated.');
+    setLocalCheckoutSuccessMessage('');
+    setLocalCheckoutErrorMessage('');
+    setIsProcessingOrder(true);
+
+    // Basic client-side validation
+    if (
+      !shippingInfo.fullName ||
+      !shippingInfo.address ||
+      !shippingInfo.city ||
+      !shippingInfo.zip ||
+      !shippingInfo.phone
+    ) {
+      console.log('Validation error: Missing shipping fields.');
+      setLocalCheckoutErrorMessage(
+        'Please fill in all required shipping fields.'
+      );
+      setIsProcessingOrder(false);
+      setTimeout(() => setLocalCheckoutErrorMessage(''), 5000);
+      return;
+    }
+
+    if (cart.length === 0) {
+      console.log('Validation error: Cart is empty.');
+      setLocalCheckoutErrorMessage(
+        'Your cart is empty. Please add items before checking out.'
+      );
+      setIsProcessingOrder(false);
+      setTimeout(() => setLocalCheckoutErrorMessage(''), 5000);
+      return;
+    }
+
+    // Ensure Razorpay script is ready before proceeding with order creation
+    if (!razorpayReady) {
+      console.log('Validation error: Razorpay not ready.');
+      setLocalCheckoutErrorMessage(
+        'Payment system not ready. Please wait a moment or refresh the page.'
+      );
+      setIsProcessingOrder(false);
+      return;
+    }
+
+    try {
+      console.log('Sending order creation request to backend...');
+      // Step 1: Make API call to your backend's createOrder endpoint using axios
+      const response = await axios.post(
+        `${BACKEND_URL}/api/orders`, // Use backend URL for order creation
+        {
+          shippingAddress: {
+            fullName: shippingInfo.fullName,
+            address: shippingInfo.address,
+            city: shippingInfo.city,
+            state: shippingInfo.state,
+            zip: shippingInfo.zip,
+            phone: shippingInfo.phone,
+          },
+          // Hardcoding payment method to 'Razorpay' as it's the only one handled now
+          paymentMethod: 'Razorpay', // Changed from 'creditCard' to 'Razorpay'
+          orderNotes: shippingInfo.orderNotes,
+        },
+        {
+          withCredentials: true, // Important for sending cookies/sessions
+        }
+      );
+
+      const data = response.data; // Axios automatically parses JSON
+      console.log('Order creation response from backend:', data);
+
+      // Proceed with Razorpay payment immediately after order creation
+      if (data.orderId && data.amount && data.currency && data.dbOrderId) { // Check for Razorpay fields
+        console.log('Received Razorpay order details, initiating payment...');
+        await handleRazorpayPayment({
+          orderId: data.orderId,
+          amount: data.amount,
+          currency: data.currency,
+          dbOrderId: data.dbOrderId, // Pass your DB order ID to Razorpay handler
+        });
+        // isProcessingOrder state will be managed by handleRazorpayPayment's callbacks
+      } else {
+        console.error('Backend response missing expected Razorpay order details:', data);
+        setLocalCheckoutErrorMessage(
+          'Failed to get payment details from the server.'
+        );
+        setIsProcessingOrder(false);
+      }
+    } catch (error) {
+      console.error('Checkout process error:', error);
+      // Axios error handling
+      if (axios.isAxiosError(error) && error.response) {
+        setLocalCheckoutErrorMessage(
+          error.response.data.error ||
+            'An error occurred during checkout. Please try again.'
+        );
+      } else {
+        setLocalCheckoutErrorMessage(
+          error.message || 'An error occurred during checkout. Please try again.'
+        );
+      }
+      setTimeout(() => setLocalCheckoutErrorMessage(''), 5000);
+      setIsProcessingOrder(false); // Ensure processing is stopped on error
+    }
+  };
+
+  // --- Loading/Empty Cart UI based on Authentication Status ---
+  // Spinner while auth check is initiated AND loading, or if addresses are fetching,
+  // or if authenticated but cart is still loading AND empty (to prevent showing empty cart prematurely)
+  if ((authCheckInitiated && authLoading) || isFetchingAddresses || (isAuthenticated && loadingCart && cart.length === 0)) {
+    console.log('Displaying loading spinner based on auth/fetch status.');
     return (
-      <main className="min-h-screen flex items-center justify-center bg-gray-100">
+      <main className="min-h-screen flex justify-center items-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#E30B5D]"></div>
-        <p className="ml-4 text-gray-700">Loading checkout...</p>
       </main>
     );
   }
+
+  // Handle empty cart case ONLY after authentication is confirmed AND cart has finished loading
+  if (
+    authCheckInitiated && !authLoading && // Auth check complete
+    isAuthenticated && // User is authenticated
+    !loadingCart && // Cart has finished loading
+    cart.length === 0 // Cart is empty
+  ) {
+    console.log('Displaying empty cart message after full auth/cart check.');
+    return (
+      <>
+        <Head>
+          <title>Checkout | flame&crumble</title>
+          <meta name="description" content="Proceed to checkout" />
+        </Head>
+        <Navbar />
+        <main className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex items-center justify-center">
+          <div className="text-center bg-white p-8 rounded-lg shadow-md max-w-md">
+            <h2 className="text-2xl font-bold mb-4">Your Cart is Empty</h2>
+            <p className="text-gray-700 mb-6">
+              It looks like there are no items in your cart. Please add some
+              items before proceeding to checkout.
+            </p>
+            <Link
+              href="/shop"
+              className="inline-block bg-[#E30B5D] hover:bg-[#c5094f] text-white px-6 py-3 rounded-lg font-medium transition-colors shadow-sm"
+            >
+              Continue Shopping
+            </Link>
+          </div>
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
+  // If initial authentication check is not yet done, or user is not authenticated (and redirect is pending),
+  // prevent rendering the main form. This avoids flickering or showing the form before redirect.
+  // This is a crucial guard derived from the 'Shop' page's robust auth handling.
+  if (!authCheckInitiated || (authCheckInitiated && !authLoading && !isAuthenticated)) {
+      console.log("Auth check not complete or user not authenticated, holding render.");
+      // Render nothing or a minimal loading spinner if you prefer
+      return (
+          <main className="min-h-screen flex justify-center items-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#E30B5D]"></div>
+          </main>
+      );
+  }
+
 
   return (
     <>
       <Head>
         <title>Checkout | flame&crumble</title>
+        <meta name="description" content="Proceed to checkout" />
       </Head>
-      <main className="min-h-screen bg-gray-100 py-12 px-4 lg:px-8 font-sans">
-        <div className="max-w-5xl mx-auto bg-white rounded-lg shadow-xl p-6 lg:p-8">
-          <h1 className="text-4xl font-extrabold text-gray-900 mb-8 text-center">Checkout</h1>
 
-          {error && <MessageBox type="error" message={error} onClose={() => setError(null)} />}
-          {success && <MessageBox type="success" message={success} onClose={() => setSuccess(null)} />}
+      <Navbar />
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Shipping Address Section */}
-            <div className="lg:col-span-2">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6 border-b pb-3">Shipping Address</h2>
-              <form className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div>
-                  <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                  <input
-                    type="text"
-                    id="fullName"
-                    name="fullName"
-                    value={shippingAddress.fullName}
-                    onChange={handleShippingChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E30B5D] focus:border-transparent transition duration-200"
-                    required
-                  />
-                  {formErrors.fullName && <p className="text-red-500 text-sm mt-1">{formErrors.fullName}</p>}
-                </div>
-                <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                  <input
-                    type="tel"
-                    id="phone"
-                    name="phone"
-                    value={shippingAddress.phone}
-                    onChange={handleShippingChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E30B5D] focus:border-transparent transition duration-200"
-                    required
-                  />
-                  {formErrors.phone && <p className="text-red-500 text-sm mt-1">{formErrors.phone}</p>}
-                </div>
-                <div className="sm:col-span-2">
-                  <label htmlFor="line1" className="block text-sm font-medium text-gray-700 mb-1">Address Line 1</label>
-                  <input
-                    type="text"
-                    id="line1"
-                    name="line1"
-                    value={shippingAddress.line1}
-                    onChange={handleShippingChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E30B5D] focus:border-transparent transition duration-200"
-                    required
-                  />
-                  {formErrors.line1 && <p className="text-red-500 text-sm mt-1">{formErrors.line1}</p>}
-                </div>
-                <div className="sm:col-span-2">
-                  <label htmlFor="line2" className="block text-sm font-medium text-gray-700 mb-1">Address Line 2 (Optional)</label>
-                  <input
-                    type="text"
-                    id="line2"
-                    name="line2"
-                    value={shippingAddress.line2}
-                    onChange={handleShippingChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E30B5D] focus:border-transparent transition duration-200"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">City</label>
-                  <input
-                    type="text"
-                    id="city"
-                    name="city"
-                    value={shippingAddress.city}
-                    onChange={handleShippingChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E30B5D] focus:border-transparent transition duration-200"
-                    required
-                  />
-                  {formErrors.city && <p className="text-red-500 text-sm mt-1">{formErrors.city}</p>}
-                </div>
-                <div>
-                  <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-1">State</label>
-                  <input
-                    type="text"
-                    id="state"
-                    name="state"
-                    value={shippingAddress.state}
-                    onChange={handleShippingChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E30B5D] focus:border-transparent transition duration-200"
-                    required
-                  />
-                  {formErrors.state && <p className="text-red-500 text-sm mt-1">{formErrors.state}</p>}
-                </div>
-                <div>
-                  <label htmlFor="zip" className="block text-sm font-medium text-gray-700 mb-1">Zip Code</label>
-                  <input
-                    type="text"
-                    id="zip"
-                    name="zip"
-                    value={shippingAddress.zip}
-                    onChange={handleShippingChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E30B5D] focus:border-transparent transition duration-200"
-                    required
-                  />
-                  {formErrors.zip && <p className="text-red-500 text-sm mt-1">{formErrors.zip}</p>}
-                </div>
-                <div>
-                  <label htmlFor="country" className="block text-sm font-medium text-gray-700 mb-1">Country</label>
-                  <input
-                    type="text"
-                    id="country"
-                    name="country"
-                    value={shippingAddress.country}
-                    onChange={handleShippingChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E30B5D] focus:border-transparent transition duration-200"
-                    required
-                    readOnly // If country is fixed
-                  />
-                  {formErrors.country && <p className="text-red-500 text-sm mt-1">{formErrors.country}</p>}
-                </div>
-              </form>
-            </div>
+      <main className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <h1 className="text-4xl font-extrabold text-gray-900 mb-10 text-center">
+          Checkout
+        </h1>
 
-            {/* Order Summary Section */}
-            <div className="lg:col-span-1 bg-gray-50 p-6 rounded-lg shadow-inner">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6 border-b pb-3">Order Summary</h2>
-              <div className="space-y-3 mb-6">
-                <div className="flex justify-between items-center text-gray-700">
-                  <span>Subtotal ({cartItems.length} items)</span>
-                  <span className="font-semibold">₹{subtotal.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between items-center text-gray-700">
-                  <span>Shipping</span>
-                  <span className="font-semibold">₹{shippingPrice.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between items-center text-gray-700">
-                  <span>Tax ({taxRate * 100}%)</span>
-                  <span className="font-semibold">₹{taxPrice.toFixed(2)}</span>
-                </div>
-                <div className="border-t border-gray-200 pt-3 flex justify-between items-center text-xl font-bold text-gray-900">
-                  <span>Total</span>
-                  <span>₹{totalAmount.toFixed(2)}</span>
-                </div>
-              </div>
+        {/* Global Messages */}
+        <CheckoutMessages
+          successMessage={localCheckoutSuccessMessage}
+          errorMessage={localCheckoutErrorMessage}
+          cartError={cartErrorMessage}
+        />
 
-              <h3 className="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Payment Method</h3>
-              <div className="mb-6">
-                <div className="flex items-center">
-                  <input
-                    type="radio"
-                    id="razorpay"
-                    name="paymentMethod"
-                    value="Razorpay"
-                    checked={paymentMethod === 'Razorpay'}
-                    onChange={() => setPaymentMethod('Razorpay')}
-                    className="h-4 w-4 text-[#E30B5D] focus:ring-[#E30B5D] border-gray-300"
-                  />
-                  <label htmlFor="razorpay" className="ml-2 block text-base text-gray-900 font-medium">Razorpay</label>
-                </div>
-                {/* You can add more payment options here (e.g., Cash on Delivery) */}
-              </div>
+        <div className="flex flex-col lg:flex-row gap-12">
+          <form className="lg:w-2/3 space-y-6" onSubmit={handleSubmit}>
+            {/* Shipping Information Section */}
+            <ShippingAddressForm
+              shippingInfo={shippingInfo}
+              onInputChange={handleInputChange}
+              savedAddresses={savedAddresses}
+              onSelectAddress={handleSelectAddress}
+            />
 
-              <button
-                onClick={handlePlaceOrder}
-                disabled={loading}
-                className="w-full bg-[#E30B5D] hover:bg-[#c5094f] text-white font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+            {/* Payment Information Section - Simplified as it's always Razorpay */}
+            <PaymentMethodSelection
+              paymentMethod={shippingInfo.paymentMethod}
+              onInputChange={handleInputChange}
+            />
+
+            {/* Order Notes */}
+            <div className="bg-white p-8 rounded-lg shadow-lg">
+              <label
+                htmlFor="orderNotes"
+                className="block text-sm font-medium text-gray-700 mb-1"
               >
-                {loading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white mr-3"></div>
-                    Placing Order...
-                  </>
-                ) : (
-                  'Place Order & Pay'
-                )}
-              </button>
+                Order Notes (Optional)
+              </label>
+              <textarea
+                id="orderNotes"
+                name="orderNotes"
+                rows="3"
+                value={shippingInfo.orderNotes}
+                onChange={handleInputChange}
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#E30B5D] focus:border-[#E30B5D]"
+                placeholder="Any special instructions or delivery preferences."
+              ></textarea>
             </div>
-          </div>
+
+            {/* Place Order Button */}
+            <button
+              type="submit"
+              className={`w-full bg-[#E30B5D] text-white py-3 rounded-lg font-semibold text-lg transition-colors shadow-md
+                ${
+                  isProcessingOrder ||
+                  loadingCart ||
+                  !razorpayReady // Button disabled if Razorpay not ready
+                    ? 'opacity-50 cursor-not-allowed'
+                    : 'hover:bg-[#c5094f]'
+                }`}
+              disabled={
+                isProcessingOrder ||
+                loadingCart ||
+                !razorpayReady // Button disabled if Razorpay not ready
+              }
+            >
+              {isProcessingOrder ? 'Processing Order...' : 'Place Order'}
+            </button>
+          </form>
+
+          {/* Order Summary Section */}
+          <OrderSummaryAndItems
+            cart={cart}
+            subtotal={subtotal}
+            shipping={deliveryCharge} // Pass deliveryCharge here
+            total={total}
+          />
         </div>
       </main>
+
+      <Footer />
     </>
   );
 }
