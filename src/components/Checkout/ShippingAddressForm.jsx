@@ -6,14 +6,14 @@ export default function ShippingAddressForm({
   savedAddresses,
   onSelectAddress,
 }) {
-  const [useNewAddress, setUseNewAddress] = useState(!shippingInfo.address && savedAddresses.length > 0);
+  const [useNewAddress, setUseNewAddress] = useState(!shippingInfo.line1 && savedAddresses.length > 0);
 
   useEffect(() => {
     // If no address is pre-filled and there are saved addresses, default to using a new address
-    if (!shippingInfo.address && savedAddresses.length > 0) {
+    if (!shippingInfo.line1 && savedAddresses.length > 0) {
       setUseNewAddress(true);
     }
-  }, [shippingInfo.address, savedAddresses]);
+  }, [shippingInfo.line1, savedAddresses]);
 
   const handleAddressSelectionChange = (e) => {
     const selectedId = e.target.value;
@@ -22,11 +22,14 @@ export default function ShippingAddressForm({
       // Clear current shipping info fields when choosing a new address
       onSelectAddress({
         fullName: '',
-        address: '',
+        phone: '',
+        line1: '',
+        line2: '',
         city: '',
         state: '',
         zip: '',
-        phone: '',
+        country: 'India',
+        type: 'Home'
       });
     } else {
       setUseNewAddress(false);
@@ -34,11 +37,14 @@ export default function ShippingAddressForm({
       if (selectedAddress) {
         onSelectAddress({
           fullName: selectedAddress.fullName,
-          address: selectedAddress.address,
+          phone: selectedAddress.phone,
+          line1: selectedAddress.line1,
+          line2: selectedAddress.line2 || '',
           city: selectedAddress.city,
           state: selectedAddress.state,
           zip: selectedAddress.zip,
-          phone: selectedAddress.phone,
+          country: selectedAddress.country || 'India',
+          type: selectedAddress.type || 'Home'
         });
       }
     }
@@ -57,12 +63,12 @@ export default function ShippingAddressForm({
             id="addressSelection"
             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#E30B5D] focus:border-[#E30B5D]"
             onChange={handleAddressSelectionChange}
-            value={useNewAddress ? 'new' : shippingInfo.address ? shippingInfo._id || '' : ''} // This might need refinement based on how you uniquely identify selected addresses if not directly from savedAddresses
+            value={useNewAddress ? 'new' : shippingInfo._id || ''}
           >
             <option value="">-- Select an address --</option>
             {savedAddresses.map((addr) => (
               <option key={addr._id} value={addr._id}>
-                {addr.fullName}, {addr.address}, {addr.city}
+                {addr.fullName}, {addr.line1}, {addr.city}
               </option>
             ))}
             <option value="new">Use a New Address</option>
@@ -72,6 +78,24 @@ export default function ShippingAddressForm({
 
       {(useNewAddress || savedAddresses.length === 0) && (
         <div className="space-y-6">
+          {/* Address Type */}
+          <div>
+            <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-1">
+              Address Type
+            </label>
+            <select
+              id="type"
+              name="type"
+              value={shippingInfo.type}
+              onChange={onInputChange}
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#E30B5D] focus:border-[#E30B5D]"
+            >
+              <option value="Home">Home</option>
+              <option value="Work">Work</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
           {/* Full Name */}
           <div>
             <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">
@@ -88,23 +112,58 @@ export default function ShippingAddressForm({
               required
             />
           </div>
-          {/* Address */}
+
+          {/* Phone Number */}
           <div>
-            <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
-              Address <span className="text-red-500">*</span>
+            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+              Phone Number <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="tel"
+              id="phone"
+              name="phone"
+              value={shippingInfo.phone}
+              onChange={onInputChange}
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#E30B5D] focus:border-[#E30B5D]"
+              placeholder="(123) 456-7890"
+              required
+            />
+          </div>
+
+          {/* Address Line 1 */}
+          <div>
+            <label htmlFor="line1" className="block text-sm font-medium text-gray-700 mb-1">
+              Address Line 1 <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
-              id="address"
-              name="address"
-              value={shippingInfo.address}
+              id="line1"
+              name="line1"
+              value={shippingInfo.line1}
               onChange={onInputChange}
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#E30B5D] focus:border-[#E30B5D]"
               placeholder="123 Main St"
               required
             />
           </div>
-          {/* City, State/Province, Zip Code */}
+
+          {/* Address Line 2 */}
+          <div>
+            <label htmlFor="line2" className="block text-sm font-medium text-gray-700 mb-1">
+              Address Line 2 (Optional)
+            </label>
+            <input
+              type="text"
+              id="line2"
+              name="line2"
+              value={shippingInfo.line2}
+              onChange={onInputChange}
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#E30B5D] focus:border-[#E30B5D]"
+              placeholder="Apt 4B"
+            />
+          </div>
+
+          {/* City, State, Zip Code */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
@@ -123,7 +182,7 @@ export default function ShippingAddressForm({
             </div>
             <div>
               <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-1">
-                State / Province
+                State / Province <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -133,6 +192,7 @@ export default function ShippingAddressForm({
                 onChange={onInputChange}
                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#E30B5D] focus:border-[#E30B5D]"
                 placeholder="CA"
+                required
               />
             </div>
             <div>
@@ -151,21 +211,27 @@ export default function ShippingAddressForm({
               />
             </div>
           </div>
-          {/* Phone Number */}
+
+          {/* Country */}
           <div>
-            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-              Phone Number <span className="text-red-500">*</span>
+            <label htmlFor="country" className="block text-sm font-medium text-gray-700 mb-1">
+              Country <span className="text-red-500">*</span>
             </label>
-            <input
-              type="tel"
-              id="phone"
-              name="phone"
-              value={shippingInfo.phone}
+            <select
+              id="country"
+              name="country"
+              value={shippingInfo.country}
               onChange={onInputChange}
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#E30B5D] focus:border-[#E30B5D]"
-              placeholder="(123) 456-7890"
               required
-            />
+            >
+              <option value="India">India</option>
+              <option value="United States">United States</option>
+              <option value="United Kingdom">United Kingdom</option>
+              <option value="Canada">Canada</option>
+              <option value="Australia">Australia</option>
+              {/* Add more countries as needed */}
+            </select>
           </div>
         </div>
       )}
