@@ -215,7 +215,7 @@ export default function Checkout() {
     0
   );
   // Assuming deliveryCharge is 50 INR based on your backend
-  const deliveryCharge = 50;
+  const deliveryCharge = 250;
   const total = subtotal > 0 ? subtotal + deliveryCharge : 0;
   console.log("Cart Totals:", { subtotal, deliveryCharge, total });
 
