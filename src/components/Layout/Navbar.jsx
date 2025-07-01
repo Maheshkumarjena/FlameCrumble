@@ -27,16 +27,24 @@ const Navbar = ({ textColor = 'text-black' }) => {
     // Combined auth state check - works for both email and Google auth
     const showAuthContent = isAuthenticated || status === 'authenticated';
 
-    const handleSignOut = async () => {
-        try {
-            await dispatch(logoutUser()).unwrap();
-            await nextAuthSignOut({ callbackUrl: '/' });
-        } catch (error) {
-            console.error('Logout failed:', error);
-            await nextAuthSignOut({ callbackUrl: '/' });
-        }
-        handleMobileLinkClick();
-    };
+const handleSignOut = async () => {
+  try {
+    // 1. Call your backend logout to clear HttpOnly cookie
+    await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/logout`, {
+      method: 'POST',
+      credentials: 'include', // Include cookies
+    });
+
+    // 2. Clear NextAuth session (if used)
+    await nextAuthSignOut({ callbackUrl: '/' });
+  } catch (error) {
+    console.error('Logout failed:', error);
+    await nextAuthSignOut({ callbackUrl: '/' }); // Fallback
+  }
+
+  // 3. Close mobile menu or trigger any UI cleanup
+  handleMobileLinkClick();
+};
 
     const baseNavItems = [
         { name: 'Home', path: '/' },
@@ -162,9 +170,10 @@ const Navbar = ({ textColor = 'text-black' }) => {
                                 <FiShoppingCart size={28} />
                             </Link>
                             {!showAuthContent ? (
-                                <Link href="/auth/login" className={`${textColor} hover:text-[#E30B5D] flex items-center flex-col`} onClick={handleMobileLinkClick}>
-                                    <FiLogIn size={28} />
-                                </Link>
+                                 <Link href="/auth/login" className={`${textColor} hover:text-[#E30B5D] flex items-center`}>
+                                <FiLogIn size={25} />
+                                <span className="ml-1">Sign In</span>
+                            </Link>
                             ) : (
                                 <div className="flex items-center space-x-4">
                                     <Link href="/account" className={`${textColor} hover:text-[#E30B5D] flex items-center flex-col`} onClick={handleMobileLinkClick}>

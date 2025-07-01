@@ -1,5 +1,3 @@
-// C:\Users\mahesh\Desktop\flame-n-crumble\app\auth\register\page.jsx (or .tsx)
-
 'use client';
 import { useState } from 'react';
 import Head from 'next/head';
@@ -9,26 +7,33 @@ import { FiUser, FiMail, FiLock } from 'react-icons/fi';
 import Navbar from '@/components/Layout/Navbar';
 import Footer from '@/components/Layout/Footer';
 import Button from '@/components/UI/Button';
-import axios from 'axios'; // Import axios
-import { FcGoogle } from 'react-icons/fc'; // Import Google icon
-import { signIn } from 'next-auth/react'; // Import signIn from next-auth/react
+import axios from 'axios';
+import { FcGoogle } from 'react-icons/fc';
+import { signIn } from 'next-auth/react';
 
-// Get the backend URL from environment variables
-// In Next.js, public environment variables must be prefixed with NEXT_PUBLIC_
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
 
 export default function RegisterPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [formError, setFormError] = useState('');
+  const [hasSubmitted, setHasSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setFormError('');
+    setHasSubmitted(true);
     setLoading(true);
-    setError(''); // Clear previous errors
+
+    // Basic client-side validation (already covered by required + minLength)
+    if (password.length < 6) {
+      setFormError('Password must be at least 6 characters long.');
+      setLoading(false);
+      return;
+    }
 
     try {
       const response = await axios.post(`${BACKEND_URL}/api/auth/register`, {
@@ -42,30 +47,31 @@ export default function RegisterPage() {
       router.push(`/auth/verify-email?email=${encodeURIComponent(email)}`);
     } catch (err) {
       if (err.response) {
-        const { data, status } = err.response;
+        const { status, data } = err.response;
+        const msg = data?.error?.toLowerCase() || '';
+
         if (status === 400 && data.errors && Array.isArray(data.errors)) {
-          const validationErrors = data.errors.map(valErr => valErr.msg).join('; ');
-          setError(validationErrors);
+          // For express-validator type errors
+          const frontendMsg = data.errors.map(valErr => valErr.msg).join('; ');
+          setFormError(frontendMsg);
+        } else if (status === 409 || msg.includes('already exists') || msg.includes('already registered')) {
+          setFormError('Email already registered. Please use a different email or sign in.');
         } else {
-          setError(data.error || 'Registration failed due to an unexpected error.');
+          setFormError('Registration failed. Please try again later.');
         }
       } else if (err.request) {
-        setError('No response from server. Please check your network connection or backend URL.');
+        setFormError('Server not responding. Please check your internet connection or backend.');
       } else {
-        setError(`Error: ${err.message}`);
+        setFormError('Something went wrong. Please try again.');
       }
     } finally {
       setLoading(false);
     }
   };
 
-  // Function to handle Google Sign-Up using NextAuth.js signIn
   const handleGoogleSignIn = async () => {
-    // IMPORTANT: Add this check to ensure signIn only runs in the browser
     if (typeof window !== 'undefined') {
-      await signIn("google", { callbackUrl: '/account' });
-    } else {
-      console.warn("Google sign-in attempt skipped during server-side prerendering.");
+      await signIn('google', { callbackUrl: '/account' });
     }
   };
 
@@ -75,7 +81,6 @@ export default function RegisterPage() {
         <title>Register | flame&crumble</title>
         <meta name="description" content="Create a new account" />
       </Head>
-
 
       <Navbar />
 
@@ -87,9 +92,9 @@ export default function RegisterPage() {
           </div>
 
           <div className="p-6">
-            {error && (
+            {hasSubmitted && formError && (
               <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 rounded-md">
-                <p>{error}</p>
+                <p>{formError}</p>
               </div>
             )}
 
@@ -106,7 +111,11 @@ export default function RegisterPage() {
                     type="text"
                     id="name"
                     value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    onChange={(e) => {
+                      setName(e.target.value);
+                      setFormError('');
+                      setHasSubmitted(false);
+                    }}
                     className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#E30B5D] focus:border-[#E30B5D]"
                     required
                   />
@@ -125,7 +134,11 @@ export default function RegisterPage() {
                     type="email"
                     id="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      setFormError('');
+                      setHasSubmitted(false);
+                    }}
                     className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#E30B5D] focus:border-[#E30B5D]"
                     required
                   />
@@ -144,7 +157,11 @@ export default function RegisterPage() {
                     type="password"
                     id="password"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      setFormError('');
+                      setHasSubmitted(false);
+                    }}
                     className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#E30B5D] focus:border-[#E30B5D]"
                     required
                     minLength="6"
@@ -200,11 +217,10 @@ export default function RegisterPage() {
               </div>
 
               <div className="mt-6">
-                {/* Google Sign-up Button */}
                 <Button
                   variant="secondary"
                   className="w-full flex justify-center items-center"
-                  onClick={handleGoogleSignIn} // Added onClick handler
+                  onClick={handleGoogleSignIn}
                 >
                   <FcGoogle className="w-5 h-5 mr-2" />
                   Sign up with Google
