@@ -255,15 +255,19 @@ export default function OrderDetails({ params }) {
               If you have any questions about your order, please contact our customer service.
             </p>
             <div className="flex flex-col sm:flex-row gap-3">
+              <Link href="/contact">
               <button className="bg-[#E30B5D] text-white px-6 py-2 rounded-lg hover:bg-[#c5094f] transition-colors">
                 Contact Support
               </button>
+              </Link>
+              <Link 
+                href="/shop">
               <button 
-                onClick={() => router.push('/shop')}
                 className="bg-white border border-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-50 transition-colors"
-              >
+                >
                 Continue Shopping
               </button>
+                </Link>
             </div>
           </div>
         </div>
