@@ -49,7 +49,7 @@ const OrderHistory = ({ orders, BACKEND_URL, displayLocalMessage }) => {
                   <p className="text-sm text-gray-500 mt-1">Placed on: {new Date(order.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
                 </div>
                 <div className="text-right">
-                  <p className="font-bold text-xl text-gray-900">${order.total ? order.total.toFixed(2) : '0.00'}</p>
+                  <p className="font-bold text-xl text-gray-900">₹{order.total ? order.total.toFixed(2) : '0.00'}</p>
                   <div className="flex items-center justify-end text-sm text-gray-600 mt-1">
                     {getStatusIcon(order.status)}
                     <span className="capitalize">{order.status || 'Pending'}</span>
@@ -74,7 +74,7 @@ const OrderHistory = ({ orders, BACKEND_URL, displayLocalMessage }) => {
                       <p className="text-sm text-gray-500 mt-1">Qty: {productItem.quantity}</p>
                     </div>
                     <div className="ml-auto">
-                      <p className="text-base font-semibold text-gray-700">${productItem.price ? productItem.price.toFixed(2) : '0.00'}</p>
+                      <p className="text-base font-semibold text-gray-700">₹{productItem.price ? productItem.price.toFixed(2) : '0.00'}</p>
                     </div>
                   </div>
                 ))}
