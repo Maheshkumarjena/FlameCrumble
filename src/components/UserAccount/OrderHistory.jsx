@@ -45,11 +45,11 @@ const OrderHistory = ({ orders, BACKEND_URL, displayLocalMessage }) => {
             <div key={order._id || order.id} className="p-6 bg-white hover:bg-gray-50 transition duration-150 ease-in-out">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
                 <div className="mb-3 sm:mb-0">
-                  <h3 className="font-semibold text-lg text-gray-800">Order #{order.orderId || order.id}</h3>
+                  <h3 className="font-semibold text-md text-gray-800">Order #{order._id || order.id}</h3>
                   <p className="text-sm text-gray-500 mt-1">Placed on: {new Date(order.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
                 </div>
                 <div className="text-right">
-                  <p className="font-bold text-xl text-gray-900">${order.totalAmount ? order.totalAmount.toFixed(2) : '0.00'}</p>
+                  <p className="font-bold text-xl text-gray-900">${order.total ? order.total.toFixed(2) : '0.00'}</p>
                   <div className="flex items-center justify-end text-sm text-gray-600 mt-1">
                     {getStatusIcon(order.status)}
                     <span className="capitalize">{order.status || 'Pending'}</span>

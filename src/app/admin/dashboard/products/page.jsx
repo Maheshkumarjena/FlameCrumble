@@ -501,12 +501,23 @@ const ProductManagement = () => {
                                             {formErrors.price && <p className="text-red-500 text-xs mt-1">{formErrors.price}</p>}
                                         </div>
                                         <div>
-                                            <label htmlFor="category" className="block text-sm font-medium text-gray-700">Category</label>
-                                            <input type="text" id="category" name="category" value={currentProduct.category} onChange={handleFormChange}
-                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-[#E30B5D] focus:border-[#E30B5D] transition-all duration-150 ease-in-out"
-                                                required />
-                                            {formErrors.category && <p className="text-red-500 text-xs mt-1">{formErrors.category}</p>}
-                                        </div>
+  <label htmlFor="category" className="block text-sm font-medium text-gray-700">Category</label>
+  <select
+    id="category"
+    name="category"
+    value={currentProduct.category}
+    onChange={handleFormChange}
+    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-[#E30B5D] focus:border-[#E30B5D] transition-all duration-150 ease-in-out"
+    required
+  >
+    <option value="">Select a category</option>
+    <option value="candles">Candles</option>
+    <option value="cookies">Cookies</option>
+    <option value="chocolates">Chocolates</option>
+  </select>
+  {formErrors.category && <p className="text-red-500 text-xs mt-1">{formErrors.category}</p>}
+</div>
+
                                     </div>
                                     <div>
                                         <label htmlFor="stock" className="block text-sm font-medium text-gray-700">Stock</label>

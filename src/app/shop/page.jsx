@@ -28,6 +28,7 @@ export default function Shop() {
         newArrivals: false,
     });
 
+    console.log("products ===================>", products);
     const categories = ['candles', 'cookies', 'chocolates'];
     const dispatch = useDispatch();
     const isAuthenticated = useSelector(selectIsAuthenticated);
@@ -50,7 +51,7 @@ export default function Shop() {
         }
 
         if (filters.newArrivals) {
-            result = result.filter(product => product.isFeatured);
+            result = result.filter(product => product.isNew);
         }
 
         switch (filters.sort) {
