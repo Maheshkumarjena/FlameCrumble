@@ -63,7 +63,7 @@ const ProductCard = ({ product }) => {
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
-      <div className="relative h-48 w-full">
+      <div className="relative h-64 w-full">
         <Image
           src={product.image}
           alt={product.name}
@@ -89,24 +89,35 @@ const ProductCard = ({ product }) => {
         <p className="text-gray-600 text-sm mb-2 h-10 overflow-hidden">{product.description}</p>
         <p className="text-[#E30B5D] font-bold mb-3">₹{product.price ? product.price.toFixed(2) : 'N/A'}</p>
 
-        <div className="flex justify-between items-center">
+       <div className="flex justify-between items-center">
           <button
             onClick={handleAddToCartClick}
-            className="bg-black text-white px-3 py-1 rounded text-sm hover:bg-gray-800 transition-colors duration-200 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+              product.stock 
+                ? 'bg-rose-500 hover:bg-rose-600 text-white shadow-md shadow-rose-300/30 hover:scale-105' 
+                : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+            }`}
             disabled={!product.stock}
           >
-            <FiShoppingCart className="mr-1" color="white" /> {product.stock ? 'Add' : 'Out of Stock'}
+            <div className="flex items-center">
+              <FiShoppingCart className="mr-2" size={16} />
+              {product.stock ? 'Add to Cart' : 'Out of Stock'}
+            </div>
           </button>
           <button
             onClick={handleHeartClick}
             className={`
-              text-gray-500 hover:text-[#E30B5D] transition-colors duration-200
+              p-2 rounded-full transition-all duration-300 hover:bg-rose-50
               ${isAnimating ? 'animate-heart-pop' : ''}
             `}
             aria-label={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
             disabled={loadingWishlist}
           >
-            <FiHeart size={20} color={isInWishlist ? '#EF4444' : '#6B7280'} fill={isInWishlist ? '#EF4444' : 'none'} />          </button>
+            <FiHeart 
+              size={20} 
+              className={isInWishlist ? 'text-rose-500 fill-rose-500' : 'text-gray-400 hover:text-rose-500'} 
+            />
+          </button>
         </div>
       </div>
 

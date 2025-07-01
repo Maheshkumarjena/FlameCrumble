@@ -21,7 +21,6 @@ export default function AdminDashboardPage() {
   }, [isLoading, isAuthenticated, isAdmin, router]);
 
   useEffect(() => {
-    // Only show warning when there are potential unsaved changes
     const handleBeforeUnload = (e) => {
       const hasUnsavedChanges = false; // Add your actual unsaved changes logic here
       if (hasUnsavedChanges) {
@@ -36,15 +35,13 @@ export default function AdminDashboardPage() {
 
   if (isLoading) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#E30B5D]" />
-        <p className="ml-4 text-gray-700">Loading admin dashboard...</p>
+      <main className="min-h-screen flex flex-col items-center justify-center bg-rose-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-rose-500" />
+        <p className="mt-4 text-gray-700 font-medium">Loading admin dashboard...</p>
       </main>
     );
   }
 
-  // Don't render anything if not authenticated or not admin
-  // (redirection is handled in useEffect)
   if (!isAuthenticated || !isAdmin) {
     return null;
   }

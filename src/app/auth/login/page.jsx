@@ -52,8 +52,8 @@ export default function LoginPage() {
 
     <Navbar />
 
-      <main className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="max-w-md mx-auto bg-white rounded-lg shadow-md overflow-hidden">
+      <main className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 max-w-7xl bg-[#FFF5F7] min-w-screen flex flex-row justify-center items-center  mx-auto">
+          <div className="max-w-md mx-auto bg-white rounded-lg shadow-md min-w-[325px] md:min-w-[420px] overflow-hidden">
           <div className="bg-black text-white p-6">
             <h1 className="text-2xl font-bold">Welcome Back</h1>
             <p className="text-gray-300">Login to your account</p>
@@ -188,7 +188,6 @@ export default function LoginPage() {
         </div>
       </main>
 
-      <Footer />
     </>
   );
 }

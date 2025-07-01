@@ -69,9 +69,9 @@ const Navbar = ({ textColor = 'text-black' }) => {
     }, []);
 
     return (
-        <nav className="relative bg-none shadow-md backdrop-blur-xs z-[999]">
+        <nav className=" bg-none fixed insert-0 w-full  shadow-md backdrop-blur-xs z-[999] bg-[#FFF5F7]">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-between h-10">
+                <div className="flex  justify-between h-10">
                     <div className="flex items-center">
                         <Link href="/" className={`text-xl font-bold ${textColor}`}>
                             flame&crumble
@@ -136,7 +136,7 @@ const Navbar = ({ textColor = 'text-black' }) => {
 
             {/* Mobile Navigation */}
             <div
-                className={`md:hidden w-full backdrop-blur-[10px] z-200 flex flex-col items-center justify-center transition-all duration-300 ease-in-out ${
+                className={`md:hidden w-full bg-[#FFF5F7] backdrop-blur-[10px] z-200 flex flex-col items-center justify-center transition-all duration-300 ease-in-out ${
                     isOpen ? 'h-screen opacity-100' : 'h-0 opacity-0'
                 } overflow-hidden`}
             >
@@ -157,30 +157,27 @@ const Navbar = ({ textColor = 'text-black' }) => {
                         <div className="flex justify-center space-x-6 px-3 py-2 mt-4">
                             <Link href="/wishlist" className={`${textColor} hover:text-[#E30B5D]`} onClick={handleMobileLinkClick}>
                                 <FiHeart size={28} />
-                                <span className="ml-1">wishlist</span>
                             </Link>
                             <Link href="/cart" className={`${textColor} hover:text-[#E30B5D]`} onClick={handleMobileLinkClick}>
                                 <FiShoppingCart size={28} />
-                                <span className="ml-1">cart</span>
                             </Link>
                             {!showAuthContent ? (
                                 <Link href="/auth/login" className={`${textColor} hover:text-[#E30B5D] flex items-center flex-col`} onClick={handleMobileLinkClick}>
                                     <FiLogIn size={28} />
-                                    <span className="text-sm mt-1">Sign In</span>
                                 </Link>
                             ) : (
                                 <div className="flex items-center space-x-4">
                                     <Link href="/account" className={`${textColor} hover:text-[#E30B5D] flex items-center flex-col`} onClick={handleMobileLinkClick}>
                                         <FiUser size={28} />
-                                        <span className="text-sm mt-1">Account</span>
                                     </Link>
                                     <button
                                         onClick={handleSignOut}
-                                        className={`${textColor} hover:text-[#E30B5D] flex items-center flex-col bg-transparent border-none cursor-pointer`}
+                                        className={`${textColor} hover:text-[#E30B5D] flex items-center flex-row bg-transparent border-none cursor-pointer`}
                                         aria-label="Sign Out"
                                     >
                                         <FiLogOut size={28} />
                                         <span className="text-sm mt-1">Sign Out</span>
+                                        
                                     </button>
                                 </div>
                             )}

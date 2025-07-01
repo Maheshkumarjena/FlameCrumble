@@ -52,7 +52,7 @@ const AdminLayout = () => {
   }, [activeSection]);
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-[#FFF5F7]">
       {/* Route change loading bar */}
       {isChangingRoute && (
         <div className="fixed top-0 left-0 right-0 h-1 bg-[#E30B5D] z-150">

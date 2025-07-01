@@ -1,21 +1,28 @@
-'use client';
-import { useEffect, useState } from 'react';
-import Head from 'next/head';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import Navbar from '@/components/Layout/Navbar';
-import Footer from '@/components/Layout/Footer';
-import CartSummary from '@/components/Cart/CartSummary';
-import CartItem from '@/components/Cart/CartItem';
-import { useDispatch, useSelector } from 'react-redux';
-import { fetchCart, updateCartItemQuantity, removeCartItem } from '@/lib/features/auth/cartSlice';
-import { selectIsAuthenticated, selectAuthLoading, selectAuthError } from '@/lib/features/auth/authSlice';
-import { checkAuthStatus } from '@/lib/features/auth/authSlice';
+"use client";
+import { useEffect, useState } from "react";
+import Head from "next/head";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import Navbar from "@/components/Layout/Navbar";
+import Footer from "@/components/Layout/Footer";
+import CartSummary from "@/components/Cart/CartSummary";
+import CartItem from "@/components/Cart/CartItem";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchCart,
+  updateCartItemQuantity,
+  removeCartItem,
+} from "@/lib/features/auth/cartSlice";
+import {
+  selectIsAuthenticated,
+  selectAuthLoading,
+  selectAuthError,
+} from "@/lib/features/auth/authSlice";
+import { checkAuthStatus } from "@/lib/features/auth/authSlice";
+import { toast } from "sonner";
+import { FiShoppingCart, FiArrowRight } from "react-icons/fi";
 
 export default function Cart() {
-
-  // console.log("renders========>")
-  
   const router = useRouter();
   const dispatch = useDispatch();
 
@@ -25,16 +32,9 @@ export default function Cart() {
   const cart = useSelector((state) => state.cart.items);
   const loadingCart = useSelector((state) => state.cart.loading);
   const cartErrorObject = useSelector((state) => state.cart.error);
-  const cartErrorMessage = cartErrorObject?.message;
-
   const authErrorObject = useSelector(selectAuthError);
-  const authErrorMessage = authErrorObject?.message;
-
-  const [localCartSuccessMessage, setLocalCartSuccessMessage] = useState('');
-  const [localCartErrorMessage, setLocalCartErrorMessage] = useState('');
   const [initialAuthCheckDone, setInitialAuthCheckDone] = useState(false);
 
-  // console.log('cart items', cart)
   // Effect to check auth status on component mount
   useEffect(() => {
     dispatch(checkAuthStatus());
@@ -54,36 +54,31 @@ export default function Cart() {
     }
   }, [isAuthenticated, initialAuthCheckDone, dispatch]);
 
-
   // Handle quantity update
   const handleUpdateQuantity = async (itemId, newQuantity) => {
-    setLocalCartSuccessMessage('');
-    setLocalCartErrorMessage('');
-
-    const resultAction = await dispatch(updateCartItemQuantity({ itemId, newQuantity }));
+    const resultAction = await dispatch(
+      updateCartItemQuantity({ itemId, newQuantity })
+    );
 
     if (updateCartItemQuantity.fulfilled.match(resultAction)) {
-      setLocalCartSuccessMessage('Cart item quantity updated!');
-      setTimeout(() => setLocalCartSuccessMessage(''), 3000);
+      toast.success("Cart item quantity updated!");
     } else {
-      setLocalCartErrorMessage(resultAction.payload?.message || 'Failed to update cart item.');
-      setTimeout(() => setLocalCartErrorMessage(''), 5000);
+      toast.error(
+        resultAction.payload?.message || "Failed to update cart item."
+      );
     }
   };
 
   // Handle item removal
   const handleRemoveItem = async (itemId) => {
-    setLocalCartSuccessMessage('');
-    setLocalCartErrorMessage('');
-
     const resultAction = await dispatch(removeCartItem(itemId));
 
     if (removeCartItem.fulfilled.match(resultAction)) {
-      setLocalCartSuccessMessage('Item removed from cart!');
-      setTimeout(() => setLocalCartSuccessMessage(''), 3000);
+      toast.success("Item removed from cart!");
     } else {
-      setLocalCartErrorMessage(resultAction.payload?.message || 'Failed to remove item from cart.');
-      setTimeout(() => setLocalCartErrorMessage(''), 5000);
+      toast.error(
+        resultAction.payload?.message || "Failed to remove item from cart."
+      );
     }
   };
 
@@ -99,12 +94,12 @@ export default function Cart() {
   if (!initialAuthCheckDone && authLoading) {
     return (
       <main className="min-h-screen flex justify-center items-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#E30B5D]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-rose-500"></div>
       </main>
     );
   }
 
-  // --- Start of new logic for unauthenticated state ---
+  // Handle unauthenticated state
   if (initialAuthCheckDone && !isAuthenticated) {
     return (
       <>
@@ -113,22 +108,34 @@ export default function Cart() {
           <meta name="description" content="Your shopping cart" />
         </Head>
 
-  
+        <Navbar />
 
-      <Navbar />
-
-        <main className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex items-center justify-center">
-          <div className="text-center bg-white p-8 rounded-lg shadow-md max-w-md">
-            <h2 className="text-2xl font-bold mb-4">Login to access Your Shopping Cart</h2>
-            <p className="text-gray-700 mb-6">
-              Please log in to view and manage items in your cart. Your cart is saved across devices when you're logged in!
+        <main className="min-h-screen bg-[#FFF5F7] py-16 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
+          <div className="max-w-md mx-auto bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-center">
+            <div className="bg-[#E30B5D]/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <FiShoppingCart className="text-[#E30B5D]" size={28} />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">
+              Your Cart Awaits
+            </h2>
+            <p className="text-gray-600 mb-6">
+              Sign in to view your saved items and access them across all your
+              devices.
             </p>
-            <Link
-              href={`/auth/login?returnUrl=${encodeURIComponent('/cart')}`}
-              className="inline-block bg-[#E30B5D] hover:bg-[#c5094f] text-white px-6 py-3 rounded-lg font-medium transition-colors shadow-sm"
-            >
-              Go to Login Page
-            </Link>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link
+                href={`/auth/login?returnUrl=${encodeURIComponent("/cart")}`}
+                className="bg-[#E30B5D] hover:bg-[#C90A53] text-white px-6 py-3 rounded-lg font-medium transition-colors shadow-sm flex items-center justify-center"
+              >
+                Sign In
+              </Link>
+              <Link
+                href="/auth/register"
+                className="border-2 border-black hover:bg-black hover:text-white text-black px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center"
+              >
+                Create Account
+              </Link>
+            </div>
           </div>
         </main>
 
@@ -136,14 +143,12 @@ export default function Cart() {
       </>
     );
   }
-  // --- End of new logic for unauthenticated state ---
-
 
   // If authenticated but cart is still loading and empty, show spinner
   if (isAuthenticated && loadingCart && cart.length === 0) {
     return (
       <main className="min-h-screen flex justify-center items-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#E30B5D]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-rose-500"></div>
       </main>
     );
   }
@@ -155,54 +160,41 @@ export default function Cart() {
         <meta name="description" content="Your shopping cart" />
       </Head>
 
-
       <Navbar />
 
-      <main className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">Your Shopping Cart</h1>
-
-        {/* Display cart-specific messages */}
-        {localCartSuccessMessage && (
-          <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4 rounded-md">
-            <p>{localCartSuccessMessage}</p>
-          </div>
-        )}
-        {localCartErrorMessage && (
-          <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 rounded-md">
-            <p>{localCartErrorMessage}</p>
-          </div>
-        )}
-        {/* Display cart error from Redux state */}
-        {cartErrorMessage && (
-          <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 rounded-md">
-            <p>{cartErrorMessage}</p>
-          </div>
-        )}
-        {/* Display auth error from Redux state, if any, that might prevent cart from loading */}
-        {authErrorMessage && (
-          <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 rounded-md">
-            <p>Authentication Error: {authErrorMessage}</p>
-          </div>
-        )}
-
+      <main className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 max-w-7xl bg-[#FFF5F7] min-w-screen mx-auto">
+        <h1 className="text-3xl font-['Playfair_Display'] font-bold mb-8 text-gray-800">
+          Your Shopping Cart
+        </h1>
 
         <div className="flex flex-col lg:flex-row gap-12">
           <div className="lg:w-2/3">
-            <h2 className="text-2xl font-semibold mb-6">Your Cart ({cart.length})</h2>
+            <h2 className="text-2xl font-semibold mb-6 text-gray-800">
+              Your Cart ({cart.length})
+            </h2>
 
             {cart.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-lg mb-4">Your cart is empty</p>
+              <div className="bg-white p-8 rounded-xl shadow-sm border  border-gray-100 text-center max-w-md mx-auto">
+                <div className="bg-[#E30B5D]/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <FiShoppingCart className="text-[#E30B5D]" size={28} />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                  Your Cart is Empty
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  Looks like you haven’t added anything to your cart yet.
+                </p>
                 <Link
                   href="/shop"
-                  className="inline-block bg-[#E30B5D] hover:bg-[#c5094f] text-white px-6 py-2 rounded font-medium transition-colors"
+                  className="inline-flex items-center bg-[#E30B5D] hover:bg-[#C90A53] text-white px-6 py-3 rounded-lg font-medium transition-colors shadow-sm"
                 >
                   Continue Shopping
+                  <FiArrowRight className="ml-2" />
                 </Link>
               </div>
             ) : (
               <div className="space-y-6">
-                {cart.map(cartItem => (
+                {cart.map((cartItem) => (
                   <CartItem
                     key={cartItem._id}
                     item={{
@@ -232,13 +224,15 @@ export default function Cart() {
               <div className="mt-6 space-y-4">
                 <Link
                   href="/checkout"
-                  className={`block w-full bg-[#E30B5D] text-white text-center py-3 rounded font-medium transition-colors
-                    ${loadingCart ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#c5094f]'}`}
+                  className={`block w-full bg-rose-500 hover:bg-rose-600 text-white text-center py-3 rounded-full font-medium transition-all duration-300 hover:scale-105 shadow-lg shadow-rose-300/30
+                    ${loadingCart ? "opacity-50 cursor-not-allowed" : ""}`}
                   aria-disabled={loadingCart}
                   onClick={(e) => {
                     if (loadingCart) {
                       e.preventDefault();
-                      alert('Please wait for current cart updates to complete before checking out.');
+                      toast.warning(
+                        "Please wait for current cart updates to complete before checking out."
+                      );
                     }
                   }}
                 >
@@ -246,7 +240,7 @@ export default function Cart() {
                 </Link>
                 <Link
                   href="/shop"
-                  className="block w-full bg-transparent hover:bg-gray-100 border border-black text-black text-center py-3 rounded font-medium transition-colors"
+                  className="block w-full bg-transparent hover:bg-rose-50 border-2 border-black text-black text-center py-3 rounded-full font-medium transition-all duration-300 hover:scale-105"
                 >
                   Continue Shopping
                 </Link>

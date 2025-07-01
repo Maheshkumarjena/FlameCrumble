@@ -7,6 +7,7 @@ import Navbar from '@/components/Layout/Navbar';
 import Footer from '@/components/Layout/Footer';
 import WishlistItem from '@/components/Wishlist/WishlistItem';
 import axios from 'axios';
+import { FiHeart, FiShoppingCart, FiArrowRight } from 'react-icons/fi';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
 
@@ -15,11 +16,10 @@ export default function Wishlist() {
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState('');
   const [operationError, setOperationError] = useState('');
-  const [isAuthenticated, setIsAuthenticated] = useState(false); // New state to track authentication status
-  const [initialAuthCheckDone, setInitialAuthCheckDone] = useState(false); // New state for initial check
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [initialAuthCheckDone, setInitialAuthCheckDone] = useState(false);
   const router = useRouter();
 
-  // Memoized fetch function with proper error handling
   const fetchWishlist = useCallback(async () => {
     setLoading(true);
     setFetchError('');
@@ -30,7 +30,6 @@ export default function Wishlist() {
       setWishlistItems(response.data.items);
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        // We no longer redirect here; the main useEffect handles unauthenticated state
         setFetchError(err.response?.data?.error || 'Failed to load wishlist');
       } else {
         setFetchError('Network error. Please try again.');
@@ -38,15 +37,14 @@ export default function Wishlist() {
     } finally {
       setLoading(false);
     }
-  }, []); // No need for router in dependencies here as redirect is handled elsewhere
+  }, []);
 
-  // Effect to check auth status and then fetch wishlist
   useEffect(() => {
     const controller = new AbortController();
     const signal = controller.signal;
 
     const checkAuthAndFetchWishlist = async () => {
-      setLoading(true); // Indicate loading while checking auth and fetching
+      setLoading(true);
       setFetchError('');
 
       try {
@@ -54,20 +52,17 @@ export default function Wishlist() {
           withCredentials: true,
           signal: signal,
         });
-        // If auth status check is successful, the user is authenticated
         setIsAuthenticated(true);
-        await fetchWishlist(); // Fetch wishlist only if authenticated
+        await fetchWishlist();
       } catch (err) {
         if (axios.isAxiosError(err)) {
           if (err.response?.status === 401 || err.response?.status === 403) {
-            // User is not authenticated. Do NOT redirect here.
             setIsAuthenticated(false);
-            setWishlistItems([]); // Clear any stale wishlist data
-            setLoading(false); // Stop loading, as we're now displaying the login prompt
+            setWishlistItems([]);
+            setLoading(false);
           } else if (!signal.aborted) {
-            // Handle other errors that are not due to abortion
             setFetchError(err.response?.data?.error || 'Failed to check authentication status or fetch wishlist.');
-            setIsAuthenticated(false); // Assume not authenticated on other errors as well
+            setIsAuthenticated(false);
             setLoading(false);
           }
         } else if (!signal.aborted) {
@@ -76,14 +71,14 @@ export default function Wishlist() {
           setLoading(false);
         }
       } finally {
-        setInitialAuthCheckDone(true); // Mark the initial check as complete
+        setInitialAuthCheckDone(true);
       }
     };
 
     checkAuthAndFetchWishlist();
 
-    return () => controller.abort(); // Cleanup on unmount
-  }, [fetchWishlist]); // fetchWishlist is a dependency, but it's useCallback'd without router
+    return () => controller.abort();
+  }, [fetchWishlist]);
 
   const removeItem = async (productId) => {
     setOperationError('');
@@ -120,18 +115,14 @@ export default function Wishlist() {
     }
   };
 
-  // --- Conditional rendering logic ---
-
-  // Show loading spinner initially while authentication and data fetch is in progress
   if (!initialAuthCheckDone || (loading && isAuthenticated)) {
     return (
-      <main className="min-h-screen flex justify-center items-center">
+      <main className="min-h-screen flex justify-center items-center bg-[#FFF5F7]">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#E30B5D]"></div>
       </main>
     );
   }
 
-  // If initial auth check is done and user is NOT authenticated
   if (initialAuthCheckDone && !isAuthenticated) {
     return (
       <>
@@ -140,21 +131,31 @@ export default function Wishlist() {
           <meta name="description" content="Your saved items" />
         </Head>
 
-  
-      <Navbar />
+        <Navbar />
 
-        <main className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex items-center justify-center">
-          <div className="text-center bg-white p-8 rounded-lg shadow-md max-w-md">
-            <h2 className="text-2xl font-bold mb-4">Login to Access Your Wishlist</h2>
-            <p className="text-gray-700 mb-6">
-              Please log in to view and manage your saved items. Your wishlist is accessible across all your devices when you're logged in!
+        <main className="min-h-screen bg-[#FFF5F7] py-16 px-4 flex flex-row justify-center items-center sm:px-6 lg:px-8">
+          <div className="max-w-md mx-auto bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-center">
+            <div className="bg-[#E30B5D]/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <FiHeart className="text-[#E30B5D]" size={28} />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">Your Wishlist Awaits</h2>
+            <p className="text-gray-600 mb-6">
+              Sign in to view your saved items and access them across all your devices.
             </p>
-            <Link
-              href={`/auth/login?returnUrl=${encodeURIComponent('/wishlist')}`}
-              className="inline-block bg-[#E30B5D] hover:bg-[#c5094f] text-white px-6 py-3 rounded-lg font-medium transition-colors shadow-sm"
-            >
-              Go to Login Page
-            </Link>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link
+                href={`/auth/login?returnUrl=${encodeURIComponent('/wishlist')}`}
+                className="bg-[#E30B5D] hover:bg-[#C90A53] text-white px-6 py-3 rounded-lg font-medium transition-colors shadow-sm flex items-center justify-center"
+              >
+                Sign In
+              </Link>
+              <Link
+                href="/auth/register"
+                className="border-2 border-black hover:bg-black hover:text-white text-black px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center"
+              >
+                Create Account
+              </Link>
+            </div>
           </div>
         </main>
 
@@ -163,7 +164,6 @@ export default function Wishlist() {
     );
   }
 
-  // Default rendering for authenticated users
   return (
     <>
       <Head>
@@ -171,54 +171,72 @@ export default function Wishlist() {
         <meta name="description" content="Your saved items" />
       </Head>
 
-
       <Navbar />
 
-      <main className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h2 className="text-2xl font-semibold">My Wishlist</h2>
-          <p className="text-gray-600">{wishlistItems.length} items saved</p>
+      <main className="min-h-screen bg-[#FFF5F7] py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">My Wishlist</h1>
+            <p className="text-gray-600 flex items-center">
+              <FiHeart className="mr-2 text-[#E30B5D]" />
+              {wishlistItems.length} {wishlistItems.length === 1 ? 'item' : 'items'} saved
+            </p>
+          </div>
+
+          {fetchError && (
+            <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-md flex items-start">
+              <svg className="w-5 h-5 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p>{fetchError}</p>
+            </div>
+          )}
+
+          {operationError && (
+            <div className="bg-yellow-50 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6 rounded-md flex items-start">
+              <svg className="w-5 h-5 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <p>{operationError}</p>
+            </div>
+          )}
+
+          {wishlistItems.length === 0 ? (
+            <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-center max-w-md mx-auto">
+              <div className="bg-[#E30B5D]/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FiHeart className="text-[#E30B5D]" size={28} />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Your Wishlist is Empty</h3>
+              <p className="text-gray-600 mb-6">
+                Save your favorite items to view them later and shop across devices.
+              </p>
+              <Link
+                href="/shop"
+                className="inline-flex items-center bg-[#E30B5D] hover:bg-[#C90A53] text-white px-6 py-3 rounded-lg font-medium transition-colors shadow-sm"
+              >
+                Browse Products
+                <FiArrowRight className="ml-2" />
+              </Link>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {wishlistItems.map(wishlistItem => (
+                <WishlistItem
+                  key={wishlistItem.product._id}
+                  item={{
+                    id: wishlistItem.product._id,
+                    name: wishlistItem.product.name,
+                    price: wishlistItem.product.price,
+                    image: wishlistItem.product.image,
+                    stock: wishlistItem.product.stock > 0,
+                  }}
+                  onMoveToCart={() => moveToCart(wishlistItem.product)}
+                  onRemove={() => removeItem(wishlistItem.product._id)}
+                />
+              ))}
+            </div>
+          )}
         </div>
-
-        {fetchError && (
-          <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 rounded-md">
-            <p>{fetchError}</p>
-          </div>
-        )}
-
-        {operationError && (
-          <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4 rounded-md">
-            <p>{operationError}</p>
-          </div>
-        )}
-
-        {wishlistItems.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-lg mb-4">Your wishlist is empty</p>
-            <Link
-              href="/shop"
-              className="inline-block bg-[#E30B5D] hover:bg-[#c5094f] text-white px-6 py-2 rounded font-medium transition-colors"
-            >
-              Start Shopping
-            </Link>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {wishlistItems.map(wishlistItem => (
-              <WishlistItem
-                key={wishlistItem.product._id}
-                item={{
-                  id: wishlistItem.product._id,
-                  name: wishlistItem.product.name,
-                  price: wishlistItem.product.price,
-                  image: wishlistItem.product.image,
-                }}
-                onMoveToCart={() => moveToCart(wishlistItem.product)}
-                onRemove={() => removeItem(wishlistItem.product._id)}
-              />
-            ))}
-          </div>
-        )}
       </main>
 
       <Footer />
