@@ -275,7 +275,7 @@ export default function ContactPage() {
               )}
             </div>
 
-<div className="space-y-8">
+            <div className="space-y-8">
               <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
                 <h2 className="text-2xl font-bold mb-6 text-gray-900">
                   Our Information
@@ -289,11 +289,11 @@ export default function ContactPage() {
                     <div>
                       <h3 className="text-lg font-semibold mb-2">Address</h3>
                       <p className="text-gray-600">
-                        123 Artisan Lane
+                        Disha Avenue
                         <br />
-                        London, UK
+                        NH-16,Gosani Nuagam, Brahmapur, Odisha , India                        
                         <br />
-                        SW1A 1AA
+                        760003
                       </p>
                     </div>
                   </div>
@@ -307,10 +307,10 @@ export default function ContactPage() {
                         Contact Details
                       </h3>
                       <p className="text-gray-600 mb-2">
-                        <strong>Email:</strong> hello@flameandcrumble.com
+                        <strong>Email:</strong> flameandcrumble@gmail.com
                       </p>
                       <p className="text-gray-600">
-                        <strong>Phone:</strong> +44 20 1234 5678
+                        <strong>Phone:</strong> +91 8456816607
                       </p>
                     </div>
                   </div>
@@ -324,13 +324,14 @@ export default function ContactPage() {
                         Business Hours
                       </h3>
                       <p className="text-gray-600">
-                        Monday - Friday: 9am - 6pm
+                        Monday, Wednesday - Friday: 9am - 10pm
                         <br />
-                        Saturday: 10am - 4pm
+                        Saturday - Sunday: 10am - 6pm
                         <br />
-                        Sunday: Closed
+                        Tuesday: Closed
                       </p>
                     </div>
+
                   </div>
 
                   <div className="flex items-start">
@@ -384,8 +385,9 @@ export default function ContactPage() {
               <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                 <h3 className="text-xl font-semibold mb-4">Find Us</h3>
                 <div className="aspect-w-16 aspect-h-9 rounded-lg overflow-hidden border border-gray-200">
+                  
                   <iframe
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2483.5404230563996!2d-0.12775868422990985!3d51.50073217963436!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x487604c38c8cd1d9%3A0xb78f2474b9a45aa9!2sBig%20Ben!5e0!3m2!1sen!2suk!4v1620000000000!5m2!1sen!2suk"
+                    src="https://www.google.com/maps/embed?pb=!1m17!1m12!1m3!1d3765.8979863629133!2d84.798416!3d19.286801999999998!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zMTnCsDE3JzEyLjUiTiA4NMKwNDcnNTQuMyJF!5e0!3m2!1sen!2sin!4v1751386125999!5m2!1sen!2sin"
                     width="600"
                     height="450"
                     style={{ border: 0 }}
@@ -396,7 +398,7 @@ export default function ContactPage() {
                 </div>
               </div>
             </div>
-</div>
+          </div>
         </div>
       </main>
 

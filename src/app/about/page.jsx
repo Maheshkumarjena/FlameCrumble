@@ -22,7 +22,7 @@ export default function AboutPage() {
         <section className="relative h-96 flex items-center justify-center bg-black text-white">
           <div className="absolute inset-0 overflow-hidden">
             <Image
-              src="/ourStory.avif"
+              src="/ThreadedCandle.jpg"
               alt="About flame&crumble"
               fill
               className="object-cover opacity-60"
@@ -35,7 +35,7 @@ export default function AboutPage() {
               Our Story
             </h1>
             <p className="text-xl md:text-2xl max-w-3xl mx-auto font-light">
-              Handcrafted with love since 2015
+              Handcrafted with love since 2023
             </p>
           </div>
         </section>

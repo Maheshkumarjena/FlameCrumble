@@ -101,7 +101,7 @@ export default function Home() {
                   />
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent flex flex-col justify-end p-8">
-                  <div className="transform translate-y-10 group-hover:translate-y-0 transition-transform duration-500">
+                  <div className="transform translate-y-6 group-hover:translate-y-0 transition-transform duration-500">
                     <h3 className="text-2xl font-['Playfair_Display'] font-bold text-white mb-2">{collection.title}</h3>
                     <p className="text-white/90 mb-6">{collection.description}</p>
                     <Link
@@ -131,7 +131,7 @@ export default function Home() {
                 />
               </div>
               <div className="absolute -bottom-6 -right-6 bg-white p-6 rounded-xl shadow-lg hidden lg:block">
-                <h3 className="text-2xl font-['Playfair_Display'] font-bold text-gray-800">Since 2020</h3>
+                <h3 className="text-2xl font-['Playfair_Display'] font-bold text-gray-800">Since 2023</h3>
                 <p className="text-gray-600">Crafting with love</p>
               </div>
             </div>
