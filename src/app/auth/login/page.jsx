@@ -10,70 +10,64 @@ import Footer from '@/components/Layout/Footer';
 import Button from '@/components/UI/Button';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginUser } from '@/lib/features/auth/authSlice';
-// import { clearAuthError } from '@/lib/features/auth/authSlice'; // If implemented
 import { signIn } from 'next-auth/react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-const [formError, setFormError] = useState('');
-const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [formError, setFormError] = useState('');
+  const [hasSubmitted, setHasSubmitted] = useState(false);
 
   const router = useRouter();
-
   const dispatch = useDispatch();
+  const { loading } = useSelector((state) => state.auth || {});
 
-  const { loading, error: authErrorObject } = useSelector((state) => state.auth || {});
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setHasSubmitted(true);
+    setFormError('');
 
-  const displayErrorMessage = authErrorObject?.message;
+    try {
+      const resultAction = await dispatch(loginUser({ email, password }));
 
-  const isUnverifiedEmailError = displayErrorMessage?.includes('Your email is not verified') || displayErrorMessage?.includes('Please verify your email');
-
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  setHasSubmitted(true);
-  setFormError('');
-
-  try {
-    const resultAction = await dispatch(loginUser({ email, password }));
-
-    if (loginUser.fulfilled.match(resultAction)) {
-      const returnUrl = new URLSearchParams(window.location.search).get('returnUrl') || '/account';
-      router.push(returnUrl);
-    } else {
-      // Custom error mapping based on backend response code or message
-      const backendMessage = resultAction.payload?.message?.toLowerCase() || '';
-
-      if (backendMessage.includes('unauthorized') || backendMessage.includes('invalid')) {
-        setFormError('Invalid email or password. Please try again.');
-      } else if (backendMessage.includes('not verified')) {
-        setFormError('Your email is not verified. Please verify your email to continue.');
+      if (loginUser.fulfilled.match(resultAction)) {
+        // Login successful
+        const returnUrl = new URLSearchParams(window.location.search).get('returnUrl') || '/account';
+        router.push(returnUrl);
       } else {
-        setFormError('Login failed. Please check your credentials and try again.');
+        // Handle rejected case
+        const errorPayload = resultAction.payload;
+        
+        // Check if email verification is needed (status 403)
+        if (errorPayload?.status === 403 || errorPayload?.needsVerification) {
+          router.push(`/auth/verify-email?email=${encodeURIComponent(email)}`);
+          return;
+        }
+        
+        // Set appropriate error message
+        setFormError(errorPayload?.message || 'Login failed. Please try again.');
       }
+    } catch (err) {
+      console.error('Unexpected error during login:', err);
+      setFormError('Network error. Please check your connection and try again.');
     }
-  } catch (err) {
-    console.error('Unexpected error during login:', err);
-    setFormError('Network error. Please check your connection and try again.');
-  }
-};
-
+  };
 
   const handleGoogleSignIn = async () => {
     await signIn("google");
   };
-const handleEmailChange = (e) => {
-  setEmail(e.target.value);
-  setFormError('');
-  setHasSubmitted(false);
-};
 
-const handlePasswordChange = (e) => {
-  setPassword(e.target.value);
-  setFormError('');
-  setHasSubmitted(false);
-};
+  const handleEmailChange = (e) => {
+    setEmail(e.target.value);
+    setFormError('');
+    setHasSubmitted(false);
+  };
 
+  const handlePasswordChange = (e) => {
+    setPassword(e.target.value);
+    setFormError('');
+    setHasSubmitted(false);
+  };
 
   return (
     <>
@@ -92,24 +86,22 @@ const handlePasswordChange = (e) => {
           </div>
 
           <div className="p-6">
-
             {hasSubmitted && formError && (
-  <div className="bg-red-50 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-    <strong className="block sm:inline">{formError}</strong>
+              <div className="bg-red-50 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                <strong className="block sm:inline">{formError}</strong>
 
-    {formError.toLowerCase().includes('verify') && (
-      <div className="mt-2 text-sm">
-        <Link
-          href={`/auth/verify-email?email=${encodeURIComponent(email)}`}
-          className="text-[#E30B5D] hover:underline"
-        >
-          Click here to verify your email
-        </Link>
-      </div>
-    )}
-  </div>
-)}
-
+                {formError.toLowerCase().includes('verify') && (
+                  <div className="mt-2 text-sm">
+                    <Link
+                      href={`/auth/verify-email?email=${encodeURIComponent(email)}`}
+                      className="text-[#E30B5D] hover:underline"
+                    >
+                      Click here to verify your email
+                    </Link>
+                  </div>
+                )}
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>

@@ -15,10 +15,17 @@ const OrderManagementPage = () => { // Renamed to denote it's a page component
   const [filterStatus, setFilterStatus] = useState('all');
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false); // State for sidebar visibility
 
+  // State for custom confirmation modal
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [orderToUpdate, setOrderToUpdate] = useState(null);
+  const [newStatusForUpdate, setNewStatusForUpdate] = useState('');
+
+  // Effect to fetch orders when filterStatus changes
   useEffect(() => {
     fetchOrders();
   }, [filterStatus]);
 
+  // Function to fetch orders from the backend
   const fetchOrders = async () => {
     setLoading(true);
     setError(null);
@@ -27,7 +34,8 @@ const OrderManagementPage = () => { // Renamed to denote it's a page component
         params: { status: filterStatus === 'all' ? undefined : filterStatus },
         withCredentials: true,
       });
-      setOrders(response.data.orders || []);
+      console.log("response at dashboard order=========================>", response.data);
+      setOrders(response.data || []);
     } catch (err) {
       console.error('Failed to fetch orders:', err);
       setError(err.response?.data?.error || 'Failed to load orders.');
@@ -36,34 +44,50 @@ const OrderManagementPage = () => { // Renamed to denote it's a page component
     }
   };
 
-  const handleUpdateOrderStatus = async (orderId, newStatus) => {
-    if (!window.confirm(`Are you sure you want to change order ${orderId} status to ${newStatus}?`)) {
-      return;
-    }
+  // Function to handle the actual status update after confirmation
+  const confirmUpdateOrderStatus = async () => {
+    if (!orderToUpdate || !newStatusForUpdate) return;
+
     setLoading(true);
     setError(null);
+    setShowConfirmModal(false); // Close the modal
     try {
-      await axios.patch(`${BACKEND_URL}/api/admin/orders/${orderId}/status`, { status: newStatus }, {
+      // Adjusted API endpoint to match the provided backend controller's route
+      await axios.put(`${BACKEND_URL}/api/admin/orders/${orderToUpdate}`, { status: newStatusForUpdate }, {
         withCredentials: true,
       });
-      fetchOrders();
+      fetchOrders(); // Re-fetch orders to reflect the update
     } catch (err) {
       console.error('Failed to update order status:', err);
       setError(err.response?.data?.error || 'Failed to update order status.');
     } finally {
       setLoading(false);
+      setOrderToUpdate(null); // Clear pending update state
+      setNewStatusForUpdate('');
     }
   };
 
+  // Function to initiate the status update, showing the custom modal
+  const handleUpdateOrderStatus = (orderId, newStatus) => {
+    // Instead of window.confirm, set state to show a custom modal
+    setOrderToUpdate(orderId);
+    setNewStatusForUpdate(newStatus);
+    setShowConfirmModal(true);
+  };
+
+  // Helper function to get status icons
   const getStatusIcon = (status) => {
     switch (status) {
       case 'delivered': return <FiCheckCircle className="text-green-500" />;
       case 'shipped': return <FiTruck className="text-blue-500" />;
       case 'pending':
+      case 'processing': // Added processing as it's an enum value
+      case 'cancelled':  // Added cancelled as it's an enum value
       default: return <FiClock className="text-yellow-500" />;
     }
   };
 
+  // Display loading spinner if no orders have been fetched yet
   if (loading && orders.length === 0) {
     return (
       <div className="flex h-screen bg-gray-100">
@@ -87,10 +111,8 @@ const OrderManagementPage = () => { // Renamed to denote it's a page component
         onClick={() => setMobileSidebarOpen(false)} // Close sidebar on content click
       >
         <div className='flex flex-row'>
-
-            <h2 className="text-3xl m-auto  font-bold  text-gray-800 mb-6">Order Management</h2>
-            </div>
-
+          <h2 className="text-3xl m-auto font-bold text-gray-800 mb-6">Order Management</h2>
+        </div>
 
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-2xl font-semibold text-gray-700">All Orders</h3>
@@ -102,12 +124,11 @@ const OrderManagementPage = () => { // Renamed to denote it's a page component
             >
               <option value="all">All Statuses</option>
               <option value="pending">Pending</option>
+              <option value="processing">Processing</option> {/* Added processing */}
               <option value="shipped">Shipped</option>
               <option value="delivered">Delivered</option>
+              <option value="cancelled">Cancelled</option> {/* Added cancelled */}
             </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-              <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-            </div>
           </div>
         </div>
 
@@ -119,7 +140,7 @@ const OrderManagementPage = () => { // Renamed to denote it's a page component
 
         <div className="overflow-x-auto">
           <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
-            <thead className="bg-gray-50">
+            <thead className="bg-gray-50 ">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
@@ -135,29 +156,34 @@ const OrderManagementPage = () => { // Renamed to denote it's a page component
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{order.orderId || order._id.slice(-6).toUpperCase()}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.user?.name || order.user || 'N/A'}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(order.createdAt).toLocaleDateString()}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.totalAmount ? order.totalAmount.toFixed(2) : '0.00'}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">₹{order.total ? order.total.toFixed(2) : '0.00'}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       {getStatusIcon(order.status)}
                       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full capitalize
                         ${order.status === 'delivered' ? 'bg-green-100 text-green-800' :
-                        order.status === 'shipped' ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                        order.status === 'shipped' ? 'bg-blue-100 text-blue-800' :
+                        order.status === 'processing' ? 'bg-purple-100 text-purple-800' : // Added style for processing
+                        order.status === 'cancelled' ? 'bg-red-100 text-red-800' : // Added style for cancelled
+                        'bg-yellow-100 text-yellow-800'}`}>
                         {order.status || 'Pending'}
                       </span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <Link href={`/admin/orders/${order._id}`} className="text-indigo-600 hover:text-indigo-900 mr-4">
-                      <FiEye size={18} />
+                  <td className="px-6 py-4 whitespace-nowrap flex flex-row justify-between items-center text-right text-sm font-medium">
+                    <Link href={`/orders/${order._id}`} className="text-indigo-600 hover:text-indigo-900 mr-4">
+                      <FiEye className='' size={18} />
                     </Link>
                     <select
                       value={order.status}
                       onChange={(e) => handleUpdateOrderStatus(order._id, e.target.value)}
-                      className="ml-2 px-2 py-1 border border-gray-300 rounded-md text-sm bg-white"
+                      className="ml-2 px-2 pr-5 py-1 z-40 border border-gray-300 rounded-md text-sm bg-white"
                     >
                       <option value="pending">Pending</option>
+                      <option value="processing">Processing</option>
                       <option value="shipped">Shipped</option>
                       <option value="delivered">Delivered</option>
+                      <option value="cancelled">Cancelled</option>
                     </select>
                   </td>
                 </tr>
@@ -166,6 +192,30 @@ const OrderManagementPage = () => { // Renamed to denote it's a page component
           </table>
         </div>
       </main>
+
+      {/* Custom Confirmation Modal */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full">
+            <h3 className="text-lg font-semibold mb-4">Confirm Status Change</h3>
+            <p className="mb-6">Are you sure you want to change order <span className="font-bold">{orderToUpdate?.slice(-6).toUpperCase()}</span> status to <span className="font-bold capitalize">{newStatusForUpdate}</span>?</p>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={() => setShowConfirmModal(false)}
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmUpdateOrderStatus}
+                className="px-4 py-2 bg-[#E30B5D] text-white rounded-md hover:bg-[#c20a4e] transition-colors"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

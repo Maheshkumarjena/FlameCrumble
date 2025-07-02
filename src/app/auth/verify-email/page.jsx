@@ -4,6 +4,7 @@ import Head from 'next/head'; // Head is a client component, no longer needed in
 import Navbar from '@/components/Layout/Navbar';
 import Footer from '@/components/Layout/Footer';
 import VerifyEmailClientComponent from '@/components/VerifyEmailClientComponent';
+import axios from 'axios';
 
 export default function VerifyEmailPageWrapper() {
   return (
@@ -22,7 +23,7 @@ export default function VerifyEmailPageWrapper() {
 
       <Navbar />
 
-      <main className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <main className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto bg-[#FFF5F7]">
         {/* Wrap the client component that uses useSearchParams with Suspense */}
         <Suspense fallback={
           <div className="max-w-md mx-auto bg-white rounded-lg shadow-md overflow-hidden p-6 text-center">
@@ -38,3 +39,4 @@ export default function VerifyEmailPageWrapper() {
     </>
   );
 }
+

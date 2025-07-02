@@ -262,7 +262,7 @@ const UserManagement = () => {
                       id={user._id}
                       value={user.role}
                       onChange={(e) => handleUpdateUserRole(user._id, e.target.value)}
-                      className="px-2 py-1 border border-gray-300 rounded-md text-sm bg-white mr-2 focus:ring-[#E30B5D] focus:border-[#E30B5D]"
+                      className="px-2 py-1 pr-6 border border-gray-300 rounded-md text-sm bg-white mr-2 focus:ring-[#E30B5D] focus:border-[#E30B5D]"
                       aria-label="Change user role"
                       // Disable changing own role for the currently logged-in admin
                       disabled={currentUser && currentUser._id === user._id}

@@ -38,16 +38,73 @@ export const loginUser = createAsyncThunk(
         { email, password },
         { withCredentials: true }
       );
+      
       return {
         user: response.data.user,
         timestamp: Date.now()
       };
     } catch (error) {
-      return rejectWithValue(handleAuthError(error));
+      console.log("error at login slice:", error);
+      
+      // Handle different error cases
+      if (error.response) {
+        const { status, data } = error.response;
+        
+        // Email not verified - status 403
+        if (status === 403) {
+          return rejectWithValue({
+            status: 403,
+            message: data.message || 'Your email is not verified. Please verify your email to continue.',
+            needsVerification: true,
+            email: email
+          });
+        }
+        
+        // Invalid credentials - status 401
+        if (status === 401) {
+          return rejectWithValue({
+            status: 401,
+            message: 'Invalid email or password. Please try again.'
+          });
+        }
+        
+        // Bad request - status 400
+        if (status === 400) {
+          return rejectWithValue({
+            status: 400,
+            message: data.message || 'Invalid request. Please check your input.'
+          });
+        }
+        
+        // Server error - status 500
+        if (status === 500) {
+          return rejectWithValue({
+            status: 500,
+            message: 'Server error. Please try again later.'
+          });
+        }
+        
+        // Other HTTP errors
+        return rejectWithValue({
+          status: status,
+          message: data.message || 'Login failed. Please try again.'
+        });
+      } else if (error.request) {
+        // Network error
+        return rejectWithValue({
+          status: 'NETWORK_ERROR',
+          message: 'Network error. Please check your connection and try again.'
+        });
+      } else {
+        // Other errors
+        return rejectWithValue({
+          status: 'UNKNOWN_ERROR',
+          message: 'An unexpected error occurred. Please try again.'
+        });
+      }
     }
   }
 );
-
 
 export const googleLogin = createAsyncThunk(
   'auth/googleLogin',
