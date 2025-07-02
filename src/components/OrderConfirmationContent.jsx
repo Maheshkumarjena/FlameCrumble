@@ -262,7 +262,7 @@ export default function OrderConfirmationContent() { // Renamed component
             Continue Shopping
           </Link>
           <Link
-            href="/account/orders"
+            href="/account"
             className="inline-flex items-center justify-center px-6 py-3 border border-gray-300 text-base font-medium rounded-lg shadow-sm text-gray-700 bg-white hover:bg-gray-50 transition-all"
           >
             <FaHome className="mr-2" />

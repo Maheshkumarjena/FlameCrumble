@@ -1,3 +1,4 @@
+
 const ContactForm = ({ formData, onChange, onSubmit, isAuthenticated, isSubmittingDisabled, loading }) => {
   return (
     <form onSubmit={onSubmit} className="space-y-4">
@@ -84,3 +85,5 @@ const ContactForm = ({ formData, onChange, onSubmit, isAuthenticated, isSubmitti
     </form>
   );
 };
+
+export default ContactForm;

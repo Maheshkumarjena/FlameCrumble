@@ -87,7 +87,7 @@ export default function Cart() {
     (sum, item) => sum + (item.product?.price || 0) * (item.quantity || 0),
     0
   );
-  const shipping = subtotal > 0 ? 5.99 : 0;
+  const shipping = subtotal > 0 ? 250 : 0;
   const total = subtotal + shipping;
 
   // Show loading spinner while checking auth initially

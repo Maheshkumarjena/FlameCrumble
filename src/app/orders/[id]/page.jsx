@@ -28,6 +28,8 @@ export default function OrderDetails({ params }) {
   const router = useRouter();
   const orderId = params.id;
 
+  console.log("order detail at order detail page ==========================>", order)
+
   useEffect(() => {
     const fetchOrderDetails = async () => {
       try {
@@ -173,9 +175,9 @@ export default function OrderDetails({ params }) {
               {order.items.map((item, index) => (
                 <div key={index} className="p-6 flex flex-col sm:flex-row">
                   <div className="flex-shrink-0 w-24 h-24 bg-gray-100 rounded-lg overflow-hidden mb-4 sm:mb-0 sm:mr-6">
-                    {item.product?.images?.[0] ? (
+                    {item.product?.image ? (
                       <Image
-                        src={item.product.images[0]}
+                        src={item.product.image}
                         alt={item.product.name}
                         width={96}
                         height={96}
