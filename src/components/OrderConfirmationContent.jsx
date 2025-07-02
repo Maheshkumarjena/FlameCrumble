@@ -31,6 +31,7 @@ export default function OrderConfirmationContent() { // Renamed component
           const response = await axios.get(`${BACKEND_URL}/api/orders/${orderId}`, {
             withCredentials: true,
           });
+          console.log("Order data:", response.data);
           setOrder(response.data);
         } catch (err) {
           console.error("Error fetching order:", err);

@@ -4,7 +4,6 @@ import Head from 'next/head'; // Head is a client component, no longer needed in
 import Navbar from '@/components/Layout/Navbar';
 import Footer from '@/components/Layout/Footer';
 import VerifyEmailClientComponent from '@/components/VerifyEmailClientComponent';
-import axios from 'axios';
 
 export default function VerifyEmailPageWrapper() {
   return (
