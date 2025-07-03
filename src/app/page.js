@@ -125,7 +125,7 @@ export default function Home() {
         </section>
 
         {/* Story Section */}
-        <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto bg-rose-50">
+        <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto rounded-[60px] bg-rose-50">
           <div className="flex flex-col lg:flex-row items-center gap-16">
             <div className="lg:w-1/2 relative">
               <div className="relative rounded-2xl overflow-hidden shadow-2xl">
@@ -158,19 +158,14 @@ export default function Home() {
                 >
                   Our Journey
                 </Link>
-                <Link
-                  href="/artisans"
-                  className="border-2 border-black hover:bg-black hover:text-white text-black px-8 py-3 rounded-full font-medium transition-all duration-300 hover:scale-105 text-center"
-                >
-                  Meet Our Artisans
-                </Link>
+
               </div>
             </div>
           </div>
         </section>
 
         {/* Corporate Gifting CTA */}
-        <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center bg-gradient-to-r from-rose-100 to-rose-50 rounded-3xl my-16">
+        <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center bg-gradient-to-r from-rose-100 to-rose-50 rounded-[50px] my-16">
           <span className="text-rose-500 font-medium tracking-widest">CORPORATE GIFTING</span>
           <h2 className={`${playfair.className} text-4xl font-bold mt-2 mb-6`}>Elevate Your Corporate Relationships</h2>
           <p className="text-xl mb-10 max-w-3xl mx-auto text-gray-700">

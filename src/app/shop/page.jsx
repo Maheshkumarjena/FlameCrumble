@@ -10,6 +10,10 @@ import axios from 'axios';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchWishlist } from '@/lib/features/auth/wishlistSlice';
 import { selectIsAuthenticated } from '@/lib/features/auth/selector';
+import { Playfair_Display, Poppins } from 'next/font/google';
+
+const playfair = Playfair_Display({ subsets: ['latin'], weight: ['400', '700'] });
+const poppins = Poppins({ subsets: ['latin'], weight: ['300', '400', '600'] });
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
 const PRODUCTS_PER_PAGE = 9;
@@ -99,11 +103,11 @@ export default function Shop() {
 
             <Navbar />
 
-            <main className="min-h-screen bg-[#FFF5F7]">
+            <main className={`${poppins.className} min-h-screen bg-[#FFF5F7]`}>
                 <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
                     <div className="mb-12 mt-4 text-center">
-                        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Discover Our Collection</h1>
+                        <h1 className={`${playfair.className} text-4xl md:text-5xl font-bold text-gray-900 mb-4`}>Discover Our Collection</h1>
                         <p className="text-lg text-gray-600 max-w-2xl mx-auto">Handcrafted with love, delivered with care</p>
                     </div>
 
@@ -118,7 +122,7 @@ export default function Shop() {
                         {/* Sidebar Filter */}
                         <aside className="lg:w-72 lg:sticky lg:top-24 lg:self-start">
                             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                                <h2 className="text-xl font-semibold mb-6 text-gray-900">Filter Products</h2>
+                                <h2 className={`${playfair.className} text-xl font-semibold mb-6 text-gray-900`}>Filter Products</h2>
                                 <ProductFilter
                                     categories={categories.map(cat => ({ value: cat, label: cat.charAt(0).toUpperCase() + cat.slice(1) }))}
                                     onFilterChange={handleFilterChange}
@@ -180,7 +184,7 @@ export default function Shop() {
                                         <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
-                                        <h3 className="mt-2 text-lg font-medium text-gray-900">No products found</h3>
+                                        <h3 className={`${playfair.className} mt-2 text-lg font-medium text-gray-900`}>No products found</h3>
                                         <p className="mt-1 text-gray-500">Try adjusting your filters to find what you're looking for.</p>
                                         <div className="mt-6">
                                             <button

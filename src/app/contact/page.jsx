@@ -9,6 +9,10 @@ import Link from 'next/link';
 import axios from 'axios';
 import emailjs from '@emailjs/browser';
 import ContactForm from '@/components/Form/ContactForm';
+import { Playfair_Display, Poppins } from 'next/font/google';
+
+const playfair = Playfair_Display({ subsets: ['latin'], weight: ['400', '700'] });
+const poppins = Poppins({ subsets: ['latin'], weight: ['300', '400', '600'] });
 
 const MessageBox = ({ type, message, onClose }) => {
   if (!message) return null;
@@ -111,10 +115,10 @@ const PUBLIC_KEY = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
       };
 
       const result = await emailjs.send(
-        SERVICE_ID,      // 🔁 Replace this
-        TEMPLATE_ID,     // 🔁 Replace this
+        SERVICE_ID,
+        TEMPLATE_ID,
         emailParams,
-        PUBLIC_KEY       // 🔁 Replace this
+        PUBLIC_KEY
       );
 
       console.log('Email sent:', result.text);
@@ -135,7 +139,7 @@ const PUBLIC_KEY = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
 
   if (!initialAuthCheckDone) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-[#FFF5F7]">
+      <main className={`${poppins.className} min-h-screen flex items-center justify-center bg-[#FFF5F7]`}>
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#E30B5D]"></div>
         <p className="ml-4 text-gray-700">Loading...</p>
       </main>
@@ -152,10 +156,10 @@ const PUBLIC_KEY = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
 
       <Navbar isAuthenticated={isAuthenticated} authUser={authUser} />
 
-      <main className="min-h-screen bg-[#FFF5F7] py-16 px-4 sm:px-6 lg:px-8">
+      <main className={`${poppins.className} min-h-screen bg-[#FFF5F7] py-16 px-4 sm:px-6 lg:px-8`}>
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Get In Touch</h1>
+            <h1 className={`${playfair.className} text-4xl md:text-5xl font-bold text-gray-900 mb-4`}>Get In Touch</h1>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
               Have questions or feedback? We'd love to hear from you!
             </p>
@@ -163,7 +167,7 @@ const PUBLIC_KEY = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             <div className="bg-white px-8 py-3 rounded-xl shadow-sm border h-fit lg:sticky lg:top-12 border-gray-100">
-              <h2 className="text-2xl font-bold mb-3 text-gray-900">Send Us a Message</h2>
+              <h2 className={`${playfair.className} text-2xl font-bold mb-3 text-gray-900`}>Send Us a Message</h2>
 
               {!isAuthenticated && (
                 <MessageBox
@@ -206,7 +210,7 @@ const PUBLIC_KEY = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
 
             <div className="space-y-8">
               <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
-                <h2 className="text-2xl font-bold mb-6 text-gray-900">
+                <h2 className={`${playfair.className} text-2xl font-bold mb-6 text-gray-900`}>
                   Our Information
                 </h2>
 
@@ -216,7 +220,7 @@ const PUBLIC_KEY = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
                       <IoMapOutline className="text-[#E30B5D] w-5 h-5" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold mb-2">Address</h3>
+                      <h3 className={`${playfair.className} text-lg font-semibold mb-2`}>Address</h3>
                       <p className="text-gray-600">
                         Disha Avenue
                         <br />
@@ -232,7 +236,7 @@ const PUBLIC_KEY = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
                       <IoMail className="text-[#E30B5D] w-5 h-5" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold mb-2">
+                      <h3 className={`${playfair.className} text-lg font-semibold mb-2`}>
                         Contact Details
                       </h3>
                       <p className="text-gray-600 mb-2">
@@ -249,7 +253,7 @@ const PUBLIC_KEY = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
                       <IoTimeOutline className="text-[#E30B5D] w-5 h-5" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold mb-2">
+                      <h3 className={`${playfair.className} text-lg font-semibold mb-2`}>
                         Business Hours
                       </h3>
                       <p className="text-gray-600">
@@ -260,7 +264,6 @@ const PUBLIC_KEY = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
                         Tuesday: Closed
                       </p>
                     </div>
-
                   </div>
 
                   <div className="flex items-start">
@@ -282,7 +285,7 @@ const PUBLIC_KEY = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
                       </div>
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold mb-2">Follow Us</h3>
+                      <h3 className={`${playfair.className} text-lg font-semibold mb-2`}>Follow Us</h3>
                       <div className="flex space-x-4">
                         <a
                           href="#"
@@ -312,9 +315,8 @@ const PUBLIC_KEY = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
               </div>
 
               <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                <h3 className="text-xl font-semibold mb-4">Find Us</h3>
+                <h3 className={`${playfair.className} text-xl font-semibold mb-4`}>Find Us</h3>
                 <div className="aspect-w-16 aspect-h-9 rounded-lg overflow-hidden border border-gray-200">
-                  
                   <iframe
                     src="https://www.google.com/maps/embed?pb=!1m17!1m12!1m3!1d3765.8979863629133!2d84.798416!3d19.286801999999998!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zMTnCsDE3JzEyLjUiTiA4NMKwNDcnNTQuMyJF!5e0!3m2!1sen!2sin!4v1751386125999!5m2!1sen!2sin"
                     width="600"

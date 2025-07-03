@@ -9,6 +9,10 @@ import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import emailjs from '@emailjs/browser';
 import CorporateForm from '@/components/Form/CorporateForm';
+import { Playfair_Display, Poppins } from 'next/font/google';
+
+const playfair = Playfair_Display({ subsets: ['latin'], weight: ['400', '700'] });
+const poppins = Poppins({ subsets: ['latin'], weight: ['300', '400', '600'] });
 
 const EMAILJS_SERVICE_ID = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
 const EMAILJS_TEMPLATE_ID = process.env.NEXT_PUBLIC_EMAILJS_CORPORATE_TEMPLATE_ID;
@@ -18,7 +22,6 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:500
 if ( !EMAILJS_SERVICE_ID || !EMAILJS_TEMPLATE_ID || !EMAILJS_PUBLIC_KEY ) {
   console.error("EmailJS environment variables are not set. Please check your .env file.");
 }
-
 
 const MessageBox = ({ type, message, onClose }) => {
   if (!message) return null;
@@ -46,7 +49,6 @@ const MessageBox = ({ type, message, onClose }) => {
     </div>
   );
 };
-
 
 export default function Corporate() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -118,7 +120,7 @@ export default function Corporate() {
 
   if (!initialAuthCheckDone) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-[#FFF5F7]">
+      <main className={`${poppins.className} min-h-screen flex items-center justify-center bg-[#FFF5F7]`}>
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#E30B5D]"></div>
         <p className="ml-4 text-gray-700">Loading...</p>
       </main>
@@ -131,10 +133,11 @@ export default function Corporate() {
         <title>Corporate Gifting | flame&crumble</title>
       </Head>
       <Navbar isAuthenticated={isAuthenticated} authUser={authUser} />
-<main className="min-h-screen bg-[#FFF5F7] py-16 px-4 sm:px-6 lg:px-8">
+      
+      <main className={`${poppins.className} min-h-screen bg-[#FFF5F7] py-16 px-4 sm:px-6 lg:px-8`}>
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Corporate Gifting Solutions</h1>
+            <h1 className={`${playfair.className} text-4xl md:text-5xl font-bold text-gray-900 mb-4`}>Corporate Gifting Solutions</h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Delight your clients and employees with premium, customized gift experiences
             </p>
@@ -147,7 +150,7 @@ export default function Corporate() {
                   <div className="bg-[#E30B5D]/10 w-14 h-14 rounded-full flex items-center justify-center mb-4">
                     <FiGift className="text-[#E30B5D]" size={24} />
                   </div>
-                  <h3 className="text-xl font-semibold mb-3">Bulk Orders</h3>
+                  <h3 className={`${playfair.className} text-xl font-semibold mb-3`}>Bulk Orders</h3>
                   <p className="text-gray-600">
                     Custom gift solutions for large-scale corporate events and celebrations.
                   </p>
@@ -157,7 +160,7 @@ export default function Corporate() {
                   <div className="bg-[#E30B5D]/10 w-14 h-14 rounded-full flex items-center justify-center mb-4">
                     <FiPackage className="text-[#E30B5D]" size={24} />
                   </div>
-                  <h3 className="text-xl font-semibold mb-3">Personalization</h3>
+                  <h3 className={`${playfair.className} text-xl font-semibold mb-3`}>Personalization</h3>
                   <p className="text-gray-600">
                     Brand-aligned packaging and customized messaging options.
                   </p>
@@ -165,7 +168,7 @@ export default function Corporate() {
               </div>
               
               <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
-                <h3 className="text-xl font-semibold mb-4">Customization Options</h3>
+                <h3 className={`${playfair.className} text-xl font-semibold mb-4`}>Customization Options</h3>
                 <ul className="space-y-3">
                   <li className="flex items-start">
                     <span className="bg-[#E30B5D] text-white rounded-full w-6 h-6 flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">1</span>
@@ -183,7 +186,7 @@ export default function Corporate() {
               </div>
               
               <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
-                <h3 className="text-xl font-semibold mb-4">Perfect For</h3>
+                <h3 className={`${playfair.className} text-xl font-semibold mb-4`}>Perfect For</h3>
                 <div className="flex flex-wrap gap-3">
                   <span className="bg-[#E30B5D]/10 text-[#E30B5D] px-4 py-2 rounded-full flex items-center">
                     <FiAward className="mr-2" /> Corporate Events
@@ -201,7 +204,7 @@ export default function Corporate() {
                 <div className="flex items-start">
                   <FiTruck className="text-[#E30B5D] mt-1 mr-3 flex-shrink-0" size={24} />
                   <div>
-                    <h3 className="text-xl font-semibold mb-2">PAN India Delivery</h3>
+                    <h3 className={`${playfair.className} text-xl font-semibold mb-2`}>PAN India Delivery</h3>
                     <p className="text-gray-700">
                       We deliver corporate gifts across all major cities in India with reliable logistics partners.
                     </p>
@@ -212,7 +215,7 @@ export default function Corporate() {
             
             <div className="lg:col-span-1">
               <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 sticky top-18">
-                <h2 className="text-2xl font-bold mb-6 text-gray-900">Get Started Today</h2>
+                <h2 className={`${playfair.className} text-2xl font-bold mb-6 text-gray-900`}>Get Started Today</h2>
                 
                 {!isAuthenticated && (
                   <MessageBox 
@@ -256,14 +259,8 @@ export default function Corporate() {
           </div>
         </div>
       </main>
-<Footer />
+      
+      <Footer />
     </>
   );
 }
-
-
-
-
-///////////////////////////////////////////////////////////////////////////////
-
-
