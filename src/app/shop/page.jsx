@@ -1,4 +1,5 @@
 'use client';
+
 import { useState, useEffect, useCallback } from 'react';
 import Head from 'next/head';
 import Navbar from '@/components/Layout/Navbar';
@@ -15,20 +16,19 @@ const PRODUCTS_PER_PAGE = 9;
 
 export default function Shop() {
     const [products, setProducts] = useState([]);
-    const [filteredProducts, setFilteredProducts] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
-    const [totalProducts, setTotalProducts] = useState(0);
-    const [currentFilters, setCurrentFilters] = useState({
+    const [totalCount, setTotalCount] = useState(0);
+
+    const [filters, setFilters] = useState({
         category: 'all',
         sort: 'default',
         stock: false,
         newArrivals: false,
     });
 
-    console.log("products ===================>", products);
     const categories = ['candles', 'cookies', 'chocolates'];
     const dispatch = useDispatch();
     const isAuthenticated = useSelector(selectIsAuthenticated);
@@ -39,87 +39,53 @@ export default function Shop() {
         }
     }, [dispatch, isAuthenticated]);
 
-    const applyFrontendFilters = useCallback((allProds, filters) => {
-        let result = [...allProds];
+    const buildQueryParams = (page, filters) => {
+        return {
+            page,
+            limit: PRODUCTS_PER_PAGE,
+            ...(filters.category !== 'all' && { category: filters.category }),
+            ...(filters.stock && { inStock: true }),
+            ...(filters.newArrivals && { isFeatured: true }),
+            sortBy: filters.sort,
+        };
+    };
 
-        if (filters.category !== 'all') {
-            result = result.filter(product => product.category.toLowerCase() === filters.category.toLowerCase());
-        }
-
-        if (filters.stock) {
-            result = result.filter(product => product.stock > 0);
-        }
-
-        if (filters.newArrivals) {
-            result = result.filter(product => product.isNew);
-        }
-
-        switch (filters.sort) {
-            case 'price-asc':
-                result.sort((a, b) => a.price - b.price);
-                break;
-            case 'price-desc':
-                result.sort((a, b) => b.price - a.price);
-                break;
-            case 'newest':
-                result.sort((a, b) => (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0));
-                break;
-            default:
-                result.sort((a, b) => a.name.localeCompare(b.name));
-                break;
-        }
-        setFilteredProducts(result);
-    }, []);
-
-    const fetchProducts = useCallback(async (page, filters, append = false) => {
+    const fetchProducts = useCallback(async (page = 1, append = false) => {
         setLoading(true);
         setError('');
+
         try {
-            const params = {
-                page: page,
-                limit: PRODUCTS_PER_PAGE,
-                category: filters.category !== 'all' ? filters.category : undefined,
-                inStock: filters.stock ? true : undefined,
-                isFeatured: filters.newArrivals ? true : undefined,
-                sortBy: filters.sort,
-            };
+            const params = buildQueryParams(page, filters);
+            const res = await axios.get(`${BACKEND_URL}/api/products`, { params });
 
-            const response = await axios.get(`${BACKEND_URL}/api/products`, { params });
-            const newProducts = response.data;
+            const fetched = res.data.products || res.data || [];
+            const total = res.data.total || fetched.length;
 
-            setProducts(prevProducts => {
-                const updatedProducts = append ? [...prevProducts, ...newProducts] : newProducts;
-                setTotalProducts(updatedProducts.length);
-                applyFrontendFilters(updatedProducts, filters);
-                return updatedProducts;
-            });
-
+            setProducts(prev =>
+                append ? [...prev, ...fetched] : fetched
+            );
+            setTotalCount(total);
+            setHasMore(fetched.length === PRODUCTS_PER_PAGE);
             setCurrentPage(page);
-            setHasMore(newProducts.length === PRODUCTS_PER_PAGE);
-
         } catch (err) {
-            if (axios.isAxiosError(err) && err.response) {
-                setError(err.response.data.error || 'Failed to fetch products from server.');
-            } else {
-                setError('Network error or unexpected issue. Please check your internet connection.');
-            }
-            console.error('Error fetching products:', err);
+            setError('Failed to fetch products. Please try again.');
+            console.error(err);
         } finally {
             setLoading(false);
         }
-    }, [applyFrontendFilters]);
+    }, [filters]);
 
     useEffect(() => {
-        fetchProducts(1, currentFilters, false);
-    }, [fetchProducts, currentFilters]);
+        fetchProducts(1, false);
+    }, [fetchProducts]);
 
     const handleFilterChange = (newFilters) => {
-        setCurrentFilters(newFilters);
-        fetchProducts(1, newFilters, false);
+        setFilters(newFilters);
+        setCurrentPage(1);
     };
 
     const handleLoadMore = () => {
-        fetchProducts(currentPage + 1, currentFilters, true);
+        fetchProducts(currentPage + 1, true);
     };
 
     return (
@@ -135,58 +101,45 @@ export default function Shop() {
 
             <main className="min-h-screen bg-[#FFF5F7]">
                 <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                    {/* Hero Section */}
+
                     <div className="mb-12 mt-4 text-center">
                         <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Discover Our Collection</h1>
-                        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                            Handcrafted with love, delivered with care
-                        </p>
+                        <p className="text-lg text-gray-600 max-w-2xl mx-auto">Handcrafted with love, delivered with care</p>
                     </div>
 
-                    {/* Error Message */}
                     {error && (
                         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-8 flex items-center justify-between">
                             <span>{error}</span>
-                            <button 
-                                onClick={() => setError('')} 
-                                className="text-red-700 hover:text-red-900"
-                                aria-label="Close error message"
-                            >
-                                &times;
-                            </button>
+                            <button onClick={() => setError('')} className="text-red-700 hover:text-red-900" aria-label="Close error message">&times;</button>
                         </div>
                     )}
 
                     <div className="flex flex-col lg:flex-row gap-8">
                         {/* Sidebar Filter */}
-                        <div className="lg:w-72 lg:sticky lg:top-24 lg:self-start">
+                        <aside className="lg:w-72 lg:sticky lg:top-24 lg:self-start">
                             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                                 <h2 className="text-xl font-semibold mb-6 text-gray-900">Filter Products</h2>
                                 <ProductFilter
-                                    categories={categories.map(cat => ({ 
-                                        value: cat, 
-                                        label: cat.charAt(0).toUpperCase() + cat.slice(1) 
-                                    }))}
+                                    categories={categories.map(cat => ({ value: cat, label: cat.charAt(0).toUpperCase() + cat.slice(1) }))}
                                     onFilterChange={handleFilterChange}
-                                    initialFilters={currentFilters}
+                                    initialFilters={filters}
                                 />
                             </div>
-                        </div>
+                        </aside>
 
                         {/* Main Content */}
-                        <div className="flex-1">
-                            {/* Results Header */}
+                        <section className="flex-1">
                             <div className="flex justify-between items-center mb-6">
                                 <p className="text-gray-600">
-                                    Showing <span className="font-medium text-gray-900">{filteredProducts.length}</span> of{' '}
-                                    <span className="font-medium text-gray-900">{totalProducts}</span> products
+                                    Showing <span className="font-medium text-gray-900">{products.length}</span> of{' '}
+                                    <span className="font-medium text-gray-900">{totalCount}</span> products
                                 </p>
                             </div>
 
-                            {/* Loading State */}
-                            {loading && products.length === 0 && !error && (
+                            {/* Loading Skeleton */}
+                            {loading && products.length === 0 && (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    {[...Array(6)].map((_, i) => (
+                                    {Array.from({ length: 6 }).map((_, i) => (
                                         <div key={i} className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 animate-pulse">
                                             <div className="h-64 bg-gray-200"></div>
                                             <div className="p-5 space-y-3">
@@ -200,99 +153,66 @@ export default function Shop() {
                             )}
 
                             {/* Products Grid */}
-                            {!loading && (
+                            {!loading && products.length > 0 && (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    {filteredProducts.length > 0 ? (
-                                        filteredProducts.map((product) => (
-                                            <ProductCard 
-                                                key={product._id} 
-                                                product={{
-                                                    id: product._id,
-                                                    name: product.name,
-                                                    description: product.description || 'No description available',
-                                                    price: product.price,
-                                                    category: product.category,
-                                                    image: product.image,
-                                                    stock: product.stock > 0,
-                                                    isNew: product.isFeatured,
-                                                }} 
-                                            />
-                                        ))
-                                    ) : (
-                                        <div className="col-span-3 text-center py-12">
-                                            <div className="mx-auto max-w-md">
-                                                <svg 
-                                                    className="mx-auto h-12 w-12 text-gray-400" 
-                                                    fill="none" 
-                                                    viewBox="0 0 24 24" 
-                                                    stroke="currentColor"
-                                                    aria-hidden="true"
-                                                >
-                                                    <path 
-                                                        strokeLinecap="round" 
-                                                        strokeLinejoin="round" 
-                                                        strokeWidth={1.5} 
-                                                        d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" 
-                                                    />
-                                                </svg>
-                                                <h3 className="mt-2 text-lg font-medium text-gray-900">No products found</h3>
-                                                <p className="mt-1 text-gray-500">Try adjusting your filters to find what you're looking for.</p>
-                                                <div className="mt-6">
-                                                    <button
-                                                        onClick={() => handleFilterChange({
-                                                            category: 'all',
-                                                            sort: 'default',
-                                                            stock: false,
-                                                            newArrivals: false,
-                                                        })}
-                                                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-[#E30B5D] hover:bg-[#C90A53] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#E30B5D] transition-colors duration-200"
-                                                    >
-                                                        Reset all filters
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
+                                    {products.map((product) => (
+                                        <ProductCard
+                                            key={product._id}
+                                            product={{
+                                                id: product._id,
+                                                name: product.name,
+                                                description: product.description || 'No description available',
+                                                price: product.price,
+                                                category: product.category,
+                                                image: product.image,
+                                                stock: product.stock > 0,
+                                                isNew: product.isFeatured,
+                                            }}
+                                        />
+                                    ))}
                                 </div>
                             )}
 
-                            {/* Load More Button */}
-                            {hasMore && (
+                            {/* No Products Found */}
+                            {!loading && products.length === 0 && (
+                                <div className="col-span-3 text-center py-12">
+                                    <div className="mx-auto max-w-md">
+                                        <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <h3 className="mt-2 text-lg font-medium text-gray-900">No products found</h3>
+                                        <p className="mt-1 text-gray-500">Try adjusting your filters to find what you're looking for.</p>
+                                        <div className="mt-6">
+                                            <button
+                                                onClick={() => handleFilterChange({ category: 'all', sort: 'default', stock: false, newArrivals: false })}
+                                                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-[#E30B5D] hover:bg-[#C90A53] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#E30B5D]"
+                                            >
+                                                Reset all filters
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Load More */}
+                            {hasMore && !loading && (
                                 <div className="mt-12 flex justify-center">
                                     <button
                                         onClick={handleLoadMore}
                                         disabled={loading}
-                                        className={`px-8 py-3 rounded-full font-medium transition-all duration-200 ${
-                                            loading 
-                                                ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
-                                                : 'bg-[#E30B5D] text-white hover:bg-[#C90A53] shadow-md hover:shadow-lg transform hover:-translate-y-0.5'
-                                        }`}
-                                        aria-label={loading ? "Loading more products" : "Load more products"}
+                                        className="px-8 py-3 rounded-full font-medium bg-[#E30B5D] text-white hover:bg-[#C90A53] shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200"
+                                        aria-label="Load more products"
                                     >
-                                        {loading ? (
-                                            <span className="flex items-center">
-                                                <svg 
-                                                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-500" 
-                                                    xmlns="http://www.w3.org/2000/svg" 
-                                                    fill="none" 
-                                                    viewBox="0 0 24 24"
-                                                >
-                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                </svg>
-                                                Loading...
-                                            </span>
-                                        ) : (
-                                            'Load More Products'
-                                        )}
+                                        Load More Products
                                     </button>
                                 </div>
                             )}
-                        </div>
+                        </section>
                     </div>
                 </div>
             </main>
 
+            <Footer />
         </>
     );
 }

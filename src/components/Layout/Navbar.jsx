@@ -18,7 +18,11 @@ import {
   logoutUser,
 } from "@/lib/features/auth/authSlice";
 import { useSession, signOut as nextAuthSignOut } from "next-auth/react";
-import { FiArrowRightCircle, FiUserPlus } from "react-icons/fi"; // Replace FiLogIn
+import { FiArrowRightCircle, FiUserPlus } from "react-icons/fi";
+import { Playfair_Display, Poppins } from 'next/font/google';
+
+const playfair = Playfair_Display({ subsets: ['latin'], weight: ['400', '700'] });
+const poppins = Poppins({ subsets: ['latin'], weight: ['300', '400', '600'] });
 
 const togglePageScroll = (disable) => {
   const body = document.body;
@@ -90,11 +94,11 @@ const Navbar = ({ textColor = "text-black" }) => {
   }, []);
 
   return (
-    <nav className=" bg-none fixed insert-0 w-full  shadow-md backdrop-blur-xs z-[999] bg-[#FFF5F7]">
+    <nav className={`${poppins.className} bg-none fixed insert-0 w-full shadow-md backdrop-blur-xs z-[999] bg-[#FFF5F7]`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex  justify-between h-10">
+        <div className="flex justify-between h-10">
           <div className="flex items-center">
-            <Link href="/" className={`text-xl font-bold ${textColor}`}>
+            <Link href="/" className={`text-xl font-bold ${textColor} ${playfair.className}`}>
               flame&crumble
             </Link>
           </div>
@@ -125,11 +129,11 @@ const Navbar = ({ textColor = "text-black" }) => {
               <FiShoppingCart size={20} />
             </Link>
             {!showAuthContent ? (
-             <div className="flex items-center space-x-4  ">
+             <div className="flex items-center space-x-4">
                 {/* Sign In Button */}
                 <Link
                   href="/auth/login"
-                  className="inline-flex items-center px-4 py-1  text-[#E30B5D] font-[10px]  border border-[#E30B5D] rounded-sm transition duration-150 ease-in-out hover:bg-[#E30B5D] hover:text-white"
+                  className="inline-flex items-center px-4 py-1 text-[#E30B5D] font-[10px] border border-[#E30B5D] rounded-sm transition duration-150 ease-in-out hover:bg-[#E30B5D] hover:text-white"
                 >
                   <FiArrowRightCircle className="mr-2" size={15} />
                   <button className="text-[14px] cursor-pointer">    Sign In </button>
@@ -180,7 +184,7 @@ const Navbar = ({ textColor = "text-black" }) => {
 
       {/* Mobile Navigation */}
       <div
-        className={`md:hidden w-full bg-[#FFF5F7] backdrop-blur-[10px] z-200 flex flex-col items-center justify-center transition-all duration-300 ease-in-out ${
+        className={`${poppins.className} md:hidden w-full bg-[#FFF5F7] backdrop-blur-[10px] z-200 flex flex-col items-center justify-center transition-all duration-300 ease-in-out ${
           isOpen ? "h-screen opacity-100" : "h-0 opacity-0"
         } overflow-hidden`}
       >
@@ -220,11 +224,11 @@ const Navbar = ({ textColor = "text-black" }) => {
                 </div>
 
               {!showAuthContent ? (
-                <div className="flex items-center space-x-4  ">
+                <div className="flex items-center space-x-4">
                 {/* Sign In Button */}
                 <Link
                   href="/auth/login"
-                  className="inline-flex items-center px-4 py-1  text-[#E30B5D] font-[10px]  border border-[#E30B5D] rounded-sm transition duration-150 ease-in-out hover:bg-[#E30B5D] hover:text-white"
+                  className="inline-flex items-center px-4 py-1 text-[#E30B5D] font-[10px] border border-[#E30B5D] rounded-sm transition duration-150 ease-in-out hover:bg-[#E30B5D] hover:text-white"
                 >
                   <FiArrowRightCircle className="mr-2" size={15} />
                   <button className="text-[14px] cursor-pointer">    Sign In </button>
@@ -240,7 +244,7 @@ const Navbar = ({ textColor = "text-black" }) => {
                 </Link>
               </div>
               ) : (
-                <div className="flex flex-row justify-evenly items-center  space-x-4">
+                <div className="flex flex-row justify-evenly items-center space-x-4">
                   <Link
                     href="/account"
                     className={`${textColor} hover:text-[#E30B5D] flex items-center flex-col`}

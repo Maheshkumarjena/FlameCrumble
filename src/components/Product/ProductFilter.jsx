@@ -32,14 +32,14 @@ const ProductFilter = ({ categories, onFilterChange, initialFilters }) => {
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
           <select
-            className="border rounded px-3 py-1 text-sm"
+            className="border  w-[120px] rounded px-3 py-1  text-sm"
             value={activeFilters.category}
             onChange={(e) => handleFilterChange('category', e.target.value)}
           >
-            <option value="all">All</option>
+            <option className='mr-6' value="all">All</option>
             {/* Corrected: Access category.value and category.label */}
             {categories.map((category) => (
-              <option key={category.value} value={category.value}>
+              <option className='' key={category.value} value={category.value}>
                 {category.label}
               </option>
             ))}
@@ -49,7 +49,7 @@ const ProductFilter = ({ categories, onFilterChange, initialFilters }) => {
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Sort</label>
           <select
-            className="border rounded px-3 py-1 text-sm"
+            className="border rounded px-3 w-[160px] py-1 text-sm"
             value={activeFilters.sort}
             onChange={(e) => handleFilterChange('sort', e.target.value)}
           >

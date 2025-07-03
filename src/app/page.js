@@ -3,6 +3,10 @@ import Navbar from '../components/Layout/Navbar';
 import Footer from '../components/Layout/Footer';
 import Link from 'next/link';
 import Image from 'next/image';
+import { Playfair_Display, Poppins } from 'next/font/google';
+
+const playfair = Playfair_Display({ subsets: ['latin'], weight: ['400', '700'] });
+const poppins = Poppins({ subsets: ['latin'], weight: ['300', '400', '600'] });
 
 export default function Home() {
   return (
@@ -10,28 +14,27 @@ export default function Home() {
       <Head>
         <title>flame&crumble | Handcrafted Delights</title>
         <meta name="description" content="Premium handcrafted candles, cookies, and chocolates" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
       <Navbar />
 
-      <main className="font-['Poppins']">
-        {/* Hero Section - Modernized */}
+      <main className={poppins.className}>
+        {/* Hero Section */}
         <section className="relative h-screen flex items-center justify-center bg-black text-white">
           <div className="absolute inset-0 overflow-hidden">
             <Image
               src="/heartCandleTray.jpg"
               alt="Handcrafted delights"
               fill
-              className="object-cover opacity-60"
               priority
+              sizes="100vw"
+              className="object-cover opacity-60"
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-black/10 to-black/60"></div>
+            <div className="absolute inset-0 bg-gradient-to-b from-black/10 to-black/60" />
           </div>
           <div className="relative z-10 text-center px-4 max-w-4xl">
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-['Playfair_Display'] font-bold mb-6 text-rose-100">
+            <h1 className={`${playfair.className} text-5xl md:text-7xl lg:text-8xl font-bold mb-6 text-rose-100`}>
               <span className="text-rose-300">Flame</span>
               <span className="mx-2 text-rose-100">&</span>
               <span className="text-rose-300">Crumble</span>
@@ -61,12 +64,12 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Collections Section - Modernized */}
+        {/* Collections Section */}
         <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <span className="text-rose-400 font-medium tracking-widest">COLLECTIONS</span>
-            <h2 className="text-4xl font-['Playfair_Display'] font-bold mt-2">Handcrafted Treasures</h2>
-            <div className="w-20 h-1 bg-rose-300 mx-auto mt-4"></div>
+            <h2 className={`${playfair.className} text-4xl font-bold mt-2`}>Handcrafted Treasures</h2>
+            <div className="w-20 h-1 bg-rose-300 mx-auto mt-4" />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
@@ -96,13 +99,17 @@ export default function Home() {
                     src={collection.image}
                     alt={collection.title}
                     width={600}
-                    height={800}
+                    height={400}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    loading="lazy"
+                    sizes="(max-width: 768px) 100vw, 33vw"
                   />
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent flex flex-col justify-end p-8">
                   <div className="transform translate-y-6 group-hover:translate-y-0 transition-transform duration-500">
-                    <h3 className="text-2xl font-['Playfair_Display'] font-bold text-white mb-2">{collection.title}</h3>
+                    <h3 className={`${playfair.className} text-2xl font-bold text-white mb-2`}>
+                      {collection.title}
+                    </h3>
                     <p className="text-white/90 mb-6">{collection.description}</p>
                     <Link
                       href={collection.link}
@@ -117,7 +124,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Story Section - Modernized */}
+        {/* Story Section */}
         <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto bg-rose-50">
           <div className="flex flex-col lg:flex-row items-center gap-16">
             <div className="lg:w-1/2 relative">
@@ -128,16 +135,17 @@ export default function Home() {
                   width={600}
                   height={800}
                   className="w-full h-auto object-cover"
+                  loading="lazy"
                 />
               </div>
               <div className="absolute -bottom-6 -right-6 bg-white p-6 rounded-xl shadow-lg hidden lg:block">
-                <h3 className="text-2xl font-['Playfair_Display'] font-bold text-gray-800">Since 2023</h3>
+                <h3 className={`${playfair.className} text-2xl font-bold text-gray-800`}>Since 2023</h3>
                 <p className="text-gray-600">Crafting with love</p>
               </div>
             </div>
             <div className="lg:w-1/2">
               <span className="text-rose-400 font-medium tracking-widest">OUR STORY</span>
-              <h2 className="text-4xl font-['Playfair_Display'] font-bold mt-2 mb-6">The Art of Handcrafted Delights</h2>
+              <h2 className={`${playfair.className} text-4xl font-bold mt-2 mb-6`}>The Art of Handcrafted Delights</h2>
               <p className="text-lg text-gray-700 mb-8 leading-relaxed">
                 At flame&crumble, we believe in the magic of handmade. Each candle is carefully poured, 
                 every cookie thoughtfully baked, and all chocolates meticulously crafted to transform 
@@ -161,10 +169,10 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Corporate Gifting CTA - Modernized */}
+        {/* Corporate Gifting CTA */}
         <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center bg-gradient-to-r from-rose-100 to-rose-50 rounded-3xl my-16">
           <span className="text-rose-500 font-medium tracking-widest">CORPORATE GIFTING</span>
-          <h2 className="text-4xl font-['Playfair_Display'] font-bold mt-2 mb-6">Elevate Your Corporate Relationships</h2>
+          <h2 className={`${playfair.className} text-4xl font-bold mt-2 mb-6`}>Elevate Your Corporate Relationships</h2>
           <p className="text-xl mb-10 max-w-3xl mx-auto text-gray-700">
             Thoughtfully crafted gifts that speak volumes about your brand's appreciation
           </p>
@@ -183,9 +191,6 @@ export default function Home() {
             </Link>
           </div>
         </section>
-
-        {/* Newsletter Section - Added for Modern Touch */}
-       
       </main>
 
       <Footer />
