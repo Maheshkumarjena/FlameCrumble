@@ -32,7 +32,7 @@ export default function LoginPage() {
 
       if (loginUser.fulfilled.match(resultAction)) {
         // Login successful
-        const returnUrl = new URLSearchParams(window.location.search).get('returnUrl') || '/account';
+        const returnUrl = new URLSearchParams(window.location.search).get('returnUrl') || '/';
         router.push(returnUrl);
       } else {
         // Handle rejected case

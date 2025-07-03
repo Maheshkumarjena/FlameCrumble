@@ -202,74 +202,91 @@ const authSlice = createSlice({
     }
   },
   extraReducers: (builder) => {
-    builder
-      // Login User Cases
-      .addCase(loginUser.pending, (state) => {
+  builder
+    // Login User Cases
+    .addCase(loginUser.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    })
+    .addCase(loginUser.fulfilled, (state, action) => {
+      state.loading = false;
+      state.user = action.payload.user;
+      state.isAuthenticated = true;
+      state.isAdmin = action.payload.user.role === 'admin';
+      state.lastChecked = action.payload.timestamp;
+      state.initialized = true;
+    })
+    .addCase(loginUser.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+      state.initialized = true;
+    })
+
+    // Google Login Cases
+    .addCase(googleLogin.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    })
+    .addCase(googleLogin.fulfilled, (state, action) => {
+      state.loading = false;
+      state.user = action.payload.user;
+      state.isAuthenticated = true;
+      state.isAdmin = action.payload.user.role === 'admin';
+      state.lastChecked = action.payload.timestamp;
+      state.initialized = true;
+    })
+    .addCase(googleLogin.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+      state.initialized = true;
+    })
+
+    // Check Auth Status Cases
+    .addCase(checkAuthStatus.pending, (state) => {
+      if (!state.initialized) {
         state.loading = true;
-        state.error = null;
-      })
-      .addCase(loginUser.fulfilled, (state, action) => {
+      }
+      state.error = null;
+    })
+    .addCase(checkAuthStatus.fulfilled, (state, action) => {
+      if (action.payload) {
         state.loading = false;
         state.user = action.payload.user;
         state.isAuthenticated = true;
         state.isAdmin = action.payload.user.role === 'admin';
         state.lastChecked = action.payload.timestamp;
-        state.initialized = true;
-      })
-      .addCase(loginUser.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-        state.initialized = true;
-      })
-
-      // Check Auth Status Cases
-      .addCase(checkAuthStatus.pending, (state) => {
-        if (!state.initialized) {
-          state.loading = true;
-        }
-        state.error = null;
-      })
-      .addCase(checkAuthStatus.fulfilled, (state, action) => {
-        if (action.payload) { // Skip if cached
-          state.loading = false;
-          state.user = action.payload.user;
-          state.isAuthenticated = true;
-          state.isAdmin = action.payload.user.role === 'admin';
-          state.lastChecked = action.payload.timestamp;
-        }
-        state.initialized = true;
-      })
-      .addCase(checkAuthStatus.rejected, (state, action) => {
-        state.loading = false;
-        
-        // Only reset auth state for 401/403 errors
-        if (action.payload?.status === 401 || action.payload?.status === 403) {
-          state.user = null;
-          state.isAuthenticated = false;
-          state.isAdmin = false;
-        }
-        
-        state.error = action.payload;
-        state.initialized = true;
-      })
-
-      // Logout User Cases
-      .addCase(logoutUser.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(logoutUser.fulfilled, (state) => {
-        state.loading = false;
+      }
+      state.initialized = true;
+    })
+    .addCase(checkAuthStatus.rejected, (state, action) => {
+      state.loading = false;
+      if (action.payload?.status === 401 || action.payload?.status === 403) {
         state.user = null;
         state.isAuthenticated = false;
         state.isAdmin = false;
-        state.lastChecked = null;
-      })
-      .addCase(logoutUser.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      });
-  }
+      }
+      state.error = action.payload;
+      state.initialized = true;
+    })
+
+    // Logout User Cases
+    .addCase(logoutUser.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    })
+    .addCase(logoutUser.fulfilled, (state) => {
+      state.loading = false;
+      state.user = null;
+      state.isAuthenticated = false;
+      state.isAdmin = false;
+      state.lastChecked = null;
+    })
+    .addCase(logoutUser.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+    });
+}
+
 });
 
 export const { resetAuth, updateAuthToken } = authSlice.actions;
