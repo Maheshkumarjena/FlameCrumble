@@ -80,7 +80,7 @@ export const loginUser = createAsyncThunk(
         if (status === 500) {
           return rejectWithValue({
             status: 500,
-            message: 'Server error. Please try again later.'
+            message: 'Invalid credentials , try again . '
           });
         }
         
