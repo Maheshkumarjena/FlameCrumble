@@ -92,6 +92,7 @@ const Navbar = ({ textColor = "text-black" }) => {
       togglePageScroll(false);
     };
   }, []);
+  console.log("router.pathname", router);
 
   return (
     <nav className={`${poppins.className} bg-none fixed insert-0 w-full shadow-md backdrop-blur-xs z-[999] bg-[#FFF5F7]`}>
@@ -111,9 +112,12 @@ const Navbar = ({ textColor = "text-black" }) => {
                 href={item.path}
                 className={`${
                   router.pathname === item.path ? "text-[#E30B5D]" : textColor
-                } hover:text-[#E30B5D] transition-colors`}
+                } hover:text-[#E30B5D] transition-colors relative group`}
               >
                 {item.name}
+                <span className={`absolute left-0 -bottom-1 w-${
+                  router.pathname === item.path ? 'full' : '0'
+                } h-0.5 bg-[#E30B5D] transition-all group-hover:w-full`}></span>
               </Link>
             ))}
           </div>
