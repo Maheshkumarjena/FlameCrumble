@@ -174,6 +174,7 @@ const ProductManagement = () => {
     // State for mobile sidebar visibility
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false); // Added for sidebar
 
+    console.log(products)
     // Memoized function for product image URL generation
     const getProductImageUrl = useCallback((imagePath) => {
         const placeholder = "https://placehold.co/100x100/e0e0e0/555555?text=No+Image";
@@ -204,8 +205,9 @@ const ProductManagement = () => {
             const response = await axios.get(`${BACKEND_URL}/api/products`, {
                 withCredentials: true,
             });
+            console.log('Fetching products from backend:', response);
             // console.log('Fetched products:', response.data);
-            setProducts(response.data || []); // Assuming backend returns { products: [...] }
+            setProducts(response.data.products|| []); // Assuming backend returns { products: [...] }
         } catch (err) {
             console.error('Failed to fetch products:', err);
             setError(err.response?.data?.error || 'Failed to load products.');

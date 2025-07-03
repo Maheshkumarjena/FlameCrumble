@@ -177,7 +177,7 @@ const OrderManagementPage = () => { // Renamed to denote it's a page component
                     <select
                       value={order.status}
                       onChange={(e) => handleUpdateOrderStatus(order._id, e.target.value)}
-                      className="ml-2 px-2 pr-5 py-1 z-40 border border-gray-300 rounded-md text-sm bg-white"
+                      className="ml-2 px-2 pr-7 py-1 z-40 border border-gray-300 rounded-md text-sm bg-white"
                     >
                       <option value="pending">Pending</option>
                       <option value="processing">Processing</option>
