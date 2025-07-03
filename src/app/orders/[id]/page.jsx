@@ -192,11 +192,11 @@ export default function OrderDetails({ params }) {
                   <div className="flex-grow">
                     <h3 className="text-lg font-medium text-gray-900">{item.product?.name || 'Product'}</h3>
                     <p className="text-gray-500">Quantity: {item.quantity}</p>
-                    <p className="text-gray-500">Price: ${item.price.toFixed(2)} each</p>
+                    <p className="text-gray-500">Price: ₹{item.price.toFixed(2)} each</p>
                   </div>
                   <div className="mt-4 sm:mt-0 sm:text-right">
                     <p className="text-lg font-semibold text-gray-900">
-                      ${(item.price * item.quantity).toFixed(2)}
+                      ₹{(item.price * item.quantity).toFixed(2)}
                     </p>
                   </div>
                 </div>
@@ -237,7 +237,7 @@ export default function OrderDetails({ params }) {
               <div className="mt-6 pt-6 border-t border-gray-200">
                 <div className="flex justify-between mb-2">
                   <span className="text-gray-600">Subtotal</span>
-                  <span className="text-gray-900">${order.total.toFixed(2)-250}</span>
+                  <span className="text-gray-900">₹{order.total.toFixed(2)-250}</span>
                 </div>
                 <div className="flex justify-between mb-2">
                   <span className="text-gray-600">Shipping</span>
@@ -245,7 +245,7 @@ export default function OrderDetails({ params }) {
                 </div>
                 <div className="flex justify-between font-bold text-lg mt-4 pt-4 border-t border-gray-200">
                   <span>Total</span>
-                  <span>${order.total.toFixed(2)}</span>
+                  <span>₹{order.total.toFixed(2)}</span>
                 </div>
               </div>
             </div>
