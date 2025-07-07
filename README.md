@@ -36,5 +36,3 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
 
-
-process to make google auth verification and status check  , after sigin , I'll send the token from the backend to the frontend adn store it in local storage , then which checking authstatus , i'll pass the token if available or else use cridentials , the localstorage token will be used in case of google auth login and the  credentials will be used in case of normal sign in 

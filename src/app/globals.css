@@ -7,6 +7,11 @@
 @tailwind components;
 @tailwind utilities;
 
+
+.lenis {
+  scroll-behavior: auto !important;
+}
+
 body {
   font-family: 'Lato', sans-serif;
   @apply text-black bg-white;
