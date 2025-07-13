@@ -130,6 +130,7 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+
             {[
               {
                 title: 'Candles',
@@ -173,6 +174,7 @@ export default function Home() {
                       className="inline-block bg-rose-500 hover:bg-rose-600 text-white px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 transform hover:scale-105"
                     >
                       Shop Collection
+                      
                     </Link>
                   </div>
                 </div>

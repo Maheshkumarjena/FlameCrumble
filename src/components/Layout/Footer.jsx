@@ -9,6 +9,7 @@ const Footer = ({
     { name: 'Shop', path: '/shop' },
     { name: 'About', path: '/about' },
     { name: 'Contact', path: '/contact' },
+    { name: 'Legal Policies | flame&crumble', path: '/legal' },
   ],
   whatsappNumber = '919876543210',
   copyrightText = `© ${new Date().getFullYear()} flame&crumble. All rights reserved.`,
