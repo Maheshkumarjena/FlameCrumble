@@ -5,48 +5,12 @@ import Footer from '../components/Layout/Footer'; // Assuming Footer can adapt t
 import Link from 'next/link';
 import Image from 'next/image';
 import { Playfair_Display, Poppins } from 'next/font/google';
-import Lenis from 'lenis';
-import { useEffect } from 'react'; // Import useEffect
 
 // Initialize fonts (no change here, they are good)
 const playfair = Playfair_Display({ subsets: ['latin'], weight: ['400', '700'] });
 const poppins = Poppins({ subsets: ['latin'], weight: ['300', '400', '600'] });
 
 export default function Home() {
-  useEffect(() => {
-    // Initialize Lenis
-    const lenis = new Lenis({
-      duration: 1.2, // Adjust duration for smoother or faster scroll
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Custom easing function
-      direction: 'vertical', // vertical, horizontal
-      gestureDirection: 'vertical', // vertical, horizontal, both
-      smooth: true,
-      mouseMultiplier: 1, // How much the mouse wheel affects scroll speed
-      smoothTouch: false, // Smooth scrolling for touch devices
-      touchMultiplier: 2, // How much touch scrolling affects scroll speed
-      infinite: false, // Infinite scroll
-    });
-
-    // Function to handle scroll updates
-    function raf(time) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    }
-
-    requestAnimationFrame(raf);
-
-    // If you are using GSAP ScrollTrigger or a similar library,
-    // you would integrate it here. For example:
-    // lenis.on('scroll', ScrollTrigger.update)
-    // gsap.ticker.add((time) => {
-    //   lenis.raf(time * 1000)
-    // })
-
-    // Cleanup Lenis instance on component unmount
-    return () => {
-      lenis.destroy();
-    };
-  }, []); // Empty dependency array means this effect runs once on mount and cleans up on unmount
 
   return (
     <div className="min-h-screen min-w-screen overflow-x-hidden flex flex-col bg-gray-50 text-gray-900">

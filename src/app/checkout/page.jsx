@@ -159,7 +159,6 @@ export default function Checkout() {
       description: "Order Payment",
       order_id: razorpayOrder.orderId,
       handler: async function (response) {
-        console.log("console log at the verify payment =========================>", response)
         setLocalCheckoutSuccessMessage("Payment successful! Verifying your order...");
         setIsProcessingOrder(true);
 

@@ -95,7 +95,6 @@ const Navbar = ({ textColor = "text-black" }) => {
       togglePageScroll(false);
     };
   }, []);
-  console.log("router.pathname", router);
 
   return (
     <nav

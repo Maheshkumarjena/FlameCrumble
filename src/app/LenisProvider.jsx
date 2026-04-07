@@ -11,14 +11,21 @@ export default function LenisProvider({ children }) {
       smoothTouch: false,
     })
 
+    let rafId = 0
+
     function raf(time) {
       lenis.raf(time)
-      requestAnimationFrame(raf)
+      rafId = requestAnimationFrame(raf)
     }
 
-    requestAnimationFrame(raf)
+    rafId = requestAnimationFrame(raf)
 
-    return () => lenis.destroy()
+    return () => {
+      if (rafId) {
+        cancelAnimationFrame(rafId)
+      }
+      lenis.destroy()
+    }
   }, [])
 
   return <div className="lenis lenis-smooth">{children}</div>

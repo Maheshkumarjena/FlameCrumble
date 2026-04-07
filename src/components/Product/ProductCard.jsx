@@ -1,12 +1,12 @@
 'use client';
-import { useState } from 'react';
+import { useState, useMemo, memo } from 'react';
 import Image from 'next/image';
 import { FiHeart, FiShoppingCart } from 'react-icons/fi';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectWishlistItems, selectWishlistLoading, selectIsAuthenticated } from '@/lib/features/auth/selector';
 import { addToCart } from '@/lib/features/auth/cartSlice';
 import { toggleWishlistItem } from '@/lib/features/auth/wishlistSlice';
-import { toast } from 'sonner'; // Ensure you have sonner installed for notifications
+import { toast } from 'sonner';
 
 const ProductCard = ({ product }) => {
   const [isAnimating, setIsAnimating] = useState(false);
@@ -16,9 +16,10 @@ const ProductCard = ({ product }) => {
   const wishlistItems = useSelector(selectWishlistItems);
   const loadingWishlist = useSelector(selectWishlistLoading);
 
-
-  // console.log('Wishlist Items:', wishlistItems); // Debugging line to check wishlist items
-  const isInWishlist = wishlistItems.some(item => item.product?._id == product.id);
+  const isInWishlist = useMemo(
+    () => wishlistItems.some((item) => item.product?._id === product.id),
+    [wishlistItems, product.id]
+  );
 
   const handleHeartClick = async () => {
     if (!isAuthenticated) {
@@ -135,4 +136,4 @@ const ProductCard = ({ product }) => {
   );
 };
 
-export default ProductCard;
+export default memo(ProductCard);

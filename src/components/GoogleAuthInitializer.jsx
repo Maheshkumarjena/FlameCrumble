@@ -1,45 +1,36 @@
 // components/GoogleAuthInitializer.js (create this new file)
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useDispatch } from "react-redux";
 import { googleLogin } from "@/lib/features/auth/authSlice";
 
 export default function GoogleAuthInitializer() {
-  const { data: session, status , profile } = useSession();
+  const { data: session, status } = useSession();
   const dispatch = useDispatch();
-  // console.log("use session cnsole.logged ==================>",useSession())
+  const hasDispatchedGoogleLogin = useRef(false);
 
-  // console.log("session======================", session , "profile =================", profile);
   useEffect(() => {
-    // Only proceed if authenticated and session data
-    // is available
-    // console.log(
-    //   "googleAuthIntializer inisiated =============================:"
-    // );
-
-    // Check if the current login provider is Google
-    if (session?.user) {
-      const googleAuthData = {
-        email: session.user.email,
-        name: session.user.name,
-        image: session.user.image,
-      };
-
-      // Dispatch the googleLogin thunk
-      dispatch(googleLogin(googleAuthData));
-      setTimeout(() => {
-        
-        // console.log("google login dispatched")
-      }, 5000);
-
-      // OPTIONAL: You might want to do something here after dispatching,
-      // like redirecting or showing a success message.
-      // If your backend sets a session cookie, Redux state update might be for UI purposes.
+    if (status !== "authenticated" || !session?.user) {
+      // Reset if the user signs out or session is not ready
+      hasDispatchedGoogleLogin.current = false;
+      return;
     }
+
+    if (hasDispatchedGoogleLogin.current) {
+      return;
+    }
+
+    const googleAuthData = {
+      email: session.user.email,
+      name: session.user.name,
+      image: session.user.image,
+    };
+
+    dispatch(googleLogin(googleAuthData));
+    hasDispatchedGoogleLogin.current = true;
   }, [session, status, dispatch]);
 
-  // This component doesn't need to render anything visually
   return null;
 }

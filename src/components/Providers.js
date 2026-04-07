@@ -14,27 +14,17 @@ export function Providers({ children }) {
     storeRef.current = makeStore();
   }
 
-  // Use useEffect to dispatch checkAuthStatus after the component mounts.
-  // This ensures Redux Thunk middleware is fully operational.
+  const shouldDispatchAuthStatus = () => {
+    const state = storeRef.current?.getState();
+    const lastChecked = state?.auth?.lastChecked;
+    return !lastChecked || Date.now() - lastChecked > 300000;
+  };
+
   useEffect(() => {
-    if (storeRef.current) {
+    if (storeRef.current && shouldDispatchAuthStatus()) {
       storeRef.current.dispatch(checkAuthStatus());
     }
-  }, []); // Empty dependency array means this effect runs only once on mount
-
-  // Optional: Re-dispatch checkAuthStatus on browser focus for session freshness
-  useEffect(() => {
-    const handleFocus = () => {
-      if (storeRef.current) {
-        storeRef.current.dispatch(checkAuthStatus());
-      }
-    };
-
-    window.addEventListener('focus', handleFocus);
-    return () => {
-      window.removeEventListener('focus', handleFocus);
-    };
-  }, []); // Empty dependency array means this effect runs once on mount
+  }, []); // Only run once on mount
 
   return <Provider store={storeRef.current}>{children}</Provider>;
 }
